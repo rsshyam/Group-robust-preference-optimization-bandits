@@ -136,6 +136,48 @@ class MLERewardLearning:
         # l2_dist = np.sqrt(np.sum(np.square(true_reward_param - psi_arr)))
 
         return loss, l2_dist, acc
+    
+
+    def train_by_cvxpy_group(self, dataset: List[Transition], true_reward_param: np.ndarray):
+        psi = cp.Variable(self.param_dim)
+        pref_features, non_pref_features = [], []
+        for transition in dataset:
+            state, action_one, action_two, group_id, pref = (
+                transition.state,
+                transition.action_0,
+                transition.action_1,
+                transition.group_id,
+                transition.pref,
+            )
+            if pref == 1:
+                pref_act = action_two
+                non_pref_act = action_one
+            else:
+                pref_act = action_one
+                non_pref_act = action_two
+
+            feature_pref_act, feature_non_pref_act = (
+                self.feature_func(state, pref_act, group_id),
+                self.feature_func(state, non_pref_act, group_id),
+            )
+            pref_features.append(feature_pref_act)
+            non_pref_features.append(feature_non_pref_act)
+
+        pref_features = np.stack(pref_features, axis=0)
+        non_pref_features = np.stack(non_pref_features, axis=0)
+        reward_diff = (non_pref_features - pref_features) @ psi
+        loss = cp.sum(cp.logistic(reward_diff)) / len(dataset)
+        problem = cp.Problem(cp.Minimize(loss))
+
+        problem.solve(solver="ECOS", verbose=False)
+        psi_arr = np.array(psi.value)
+        # set-up the reward parameter
+        self.reward_param = psi_arr
+        loss, l2_dist, acc = self.evaluate_group(dataset, true_reward_param)
+        # l2_dist = np.sqrt(np.sum(np.square(true_reward_param - psi_arr)))
+
+        return loss, l2_dist, acc
+
 
     def evaluate(
         self, dataset: List[Transition], true_reward_param: np.ndarray
@@ -154,6 +196,41 @@ class MLERewardLearning:
             feature_pref_act, feature_non_pref_act = (
                 self.feature_func(state, pref_act),
                 self.feature_func(state, non_pref_act),
+            )
+            rew_pref_act, rew_non_pref_act = (
+                np.dot(feature_pref_act, self.reward_param),
+                np.dot(feature_non_pref_act, self.reward_param),
+            )
+
+            loss -= np.log(sigmoid(rew_pref_act - rew_non_pref_act))
+            acc += float(rew_pref_act > rew_non_pref_act)
+
+        loss /= len(dataset)
+        acc /= len(dataset)
+
+        # calculate the l2 distance with the optimal parameter
+        l2_dist = np.sqrt(np.sum(np.square(true_reward_param - self.reward_param)))
+
+        return loss, l2_dist, acc
+    
+    def evaluate_group(
+        self, dataset: List[Transition], true_reward_param: np.ndarray
+    ) -> (float, float, float):
+        # calculate the loss
+        loss = 0.0
+        acc = 0.0
+        for transition in dataset:
+            state = transition.state
+            action_one = transition.action_0
+            action_two = transition.action_1
+            group_id=transition.group_id
+            pref = transition.pref
+            pref_act = action_two if pref == 1 else action_one
+            non_pref_act = action_two if pref == 0 else action_one
+
+            feature_pref_act, feature_non_pref_act = (
+                self.feature_func(state, pref_act, group_id),
+                self.feature_func(state, non_pref_act, group_id),
             )
             rew_pref_act, rew_non_pref_act = (
                 np.dot(feature_pref_act, self.reward_param),

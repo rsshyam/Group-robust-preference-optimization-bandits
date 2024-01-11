@@ -46,8 +46,11 @@ def _convert_config(config):
 
 def create_log_dir(args):
     # env_name = args.env.replace("/", "_")
+    #run_id = "{}-{}-{}".format(
+    #    args.agent, args.seed, time.strftime("%Y-%m-%d-%H-%M-%S")
+    #)
     run_id = "{}-{}-{}".format(
-        args.agent, args.seed, time.strftime("%Y-%m-%d-%H-%M-%S")
+       args.agent, args.seed, args.weights
     )
     log_dir = os.path.join(args.logdir, args.agent, run_id)
     os.makedirs(log_dir, exist_ok=True)

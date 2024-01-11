@@ -68,8 +68,8 @@ def main(args=parse_args()):
     writer = SummaryWriter(log_dir)
 
     device = "cpu"
-    if torch.cuda.is_available():
-        device = "cuda"
+    #if torch.cuda.is_available():
+    #    device = "cuda"
 
     state_dim = args.state_dim
     action_num = args.action_num
