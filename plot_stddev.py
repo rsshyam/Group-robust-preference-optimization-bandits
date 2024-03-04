@@ -6,6 +6,9 @@ import yaml
 import matplotlib.pyplot as plt
 import numpy as np
 
+dta_size=40
+remove_outliers=True
+
 def load_yml(file_path):
     with open(file_path, 'r') as file:
         data = yaml.safe_load(file)
@@ -34,17 +37,21 @@ def plot_grouped_bar_graph(weights, average_errors, std_devs, num_groups):
     plt.title('Average Reward Error Across Weights and Groups', fontsize=38)
     plt.legend(fontsize=34)
     
-    neatplot.save_figure('weighted group DPO')
+    neatplot.save_figure('weighted group RDPO')
 
 # Folder where YAML files are stored
 #folder_path = '/home/uceesr4/policy_optimization/log-weighted-dpo/pg'
 #folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/20240110195635/pg'
 #folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo/20240110180513/pg'
 #folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/20240111111723/pg'
-folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/20240111112941/pg'
+#folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/20240111112941/pg'
+#folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/20240111155055/pg'
+#folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/20240111154217/pg'
+folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/20240112131734/pg'
+#folder_path_dpo='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/20240112120558/pg'
 # Seeds and weights range
-seeds = range(2021, 2026)
-weights = [round(i * 0.1, 1) for i in range(11)]
+seeds = range(2021, 2041)
+weights = [round(i * 0.1, 1) for i in range(1,2)]
 
 # Initialize lists to store data
 all_weights = []
@@ -69,11 +76,11 @@ for weight_idx, weight in enumerate(weights):
     # Iterate over seeds
     for seed in seeds:
         seed_weight_folder = os.path.join(folder_path, f"pg-{seed}-{weight_str}")
-        file_path = os.path.join(seed_weight_folder, f"reward_error_dpo.yml")
+        file_path = os.path.join(seed_weight_folder, f"reward_error_rdpo.yml")
 
         # Load YAML file and extract the error
         data = load_yml(file_path)
-        error = data[20]
+        error = data[dta_size]
 
         # Store error for the current seed
         errors_for_weight.append(error)
@@ -93,11 +100,14 @@ for weight_idx, weight in enumerate(weights):
     trimmed_errors = sorted_errors[remove_count:-remove_count]
     print(trimmed_errors)
     # Calculate the average and standard deviation of the trimmed errors
-    average_error_for_weight = np.mean(trimmed_errors, axis=0)
-    std_dev_for_weight = np.std(trimmed_errors, axis=0)
-    # Calculate the average error and standard deviation for the current weight
-    #average_error_for_weight = np.mean(errors_for_weight, axis=0)
-    #std_dev_for_weight = np.std(errors_for_weight, axis=0)
+
+    if remove_outliers==True:
+        average_error_for_weight = np.mean(trimmed_errors, axis=0)
+        std_dev_for_weight = np.std(trimmed_errors, axis=0)
+    else:
+        # Calculate the average error and standard deviation for the current weight
+        average_error_for_weight = np.mean(errors_for_weight, axis=0)
+        std_dev_for_weight = np.std(errors_for_weight, axis=0)
 
     # Store results for plotting
     all_average_errors[weight_idx, :] = average_error_for_weight

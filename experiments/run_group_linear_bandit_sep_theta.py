@@ -21,7 +21,7 @@ from utils.collect_data import (
     merge_datasets,
     pref_to_rl,
 )
-
+from utils.utils import return_apt_weights
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -36,6 +36,11 @@ def parse_args():
 
     parser.add_argument("--pref_data_num", type=int, default=500)
     parser.add_argument('--weights',type=str,default='equal')
+    parser.add_argument("--val_data_num", type=int, default=50)
+    parser.add_argument('--val_weights',type=str,default='equal')
+    parser.add_argument("--num_trials_for_eval", type=int, default=1000)
+    parser.add_argument('--test_weights',type=str,default='equal')
+
     parser.add_argument("--mle_num_iters", type=int, default=100)
     parser.add_argument("--mle_adaptive", action="store_true")
     parser.add_argument("--mle_ada_coef", type=float, default=1.0)
@@ -81,11 +86,11 @@ def main(args):
     group_num = args.group_num
 
     feature_dim = 2 * args.state_dim
-    num_trials_for_eval = 10000
+    num_trials_for_eval = args.num_trials_for_eval
     feature_func = ret_feature_func(num_action=action_num, state_dim=state_dim, group_num=group_num)
     # reward_param = np.random.standard_normal(feature_dim)
     # reward_param = np.array([2.0, 1.0, 1.0, 2.0], np.float32)
-    reward_param = np.array([[1.0, 3.0],[3.0,1.0]], np.float32)
+    reward_param = np.array([[1.0, 2.0],[2.0,1.0]], np.float32)
 
     assert group_num == np.shape(reward_param)[0], "The feature is invalid."
 
@@ -98,18 +103,22 @@ def main(args):
         feature_func,
         num_trials_for_eval=num_trials_for_eval,
     )
-    opt_policy = env.get_opt_policy()
-    opt_reward = env.evaluate_reward_group_wise(policy=opt_policy)
 
-    uniform_policy = ret_uniform_policy_group(action_num)
-    unif_policy_rew = env.evaluate_reward_group_wise(policy=uniform_policy)
-    if args.weights=='equal':
-        weights=np.ones(group_num)/group_num
-        weights=weights.tolist()
-    else:
-        weights=ast.literal_eval(args.weights)
-    pref_data = collect_group_preference_data(args.pref_data_num, env, weights, uniform_policy)
+    weights,val_weights,test_weights=return_apt_weights(args.weights,group_num),return_apt_weights(args.val_weights,group_num),return_apt_weights(args.test_weights,group_num)
     
+    opt_policy = env.get_opt_policy()
+    uniform_policy = ret_uniform_policy_group(action_num)
+    #Generate datasets:
+    pref_data = collect_group_preference_data(args.pref_data_num, env, weights, uniform_policy)
+    val_pref = collect_group_preference_data(args.val_data_num, env, val_weights, uniform_policy)
+    test_pref = collect_group_preference_data(args.num_trials_for_eval, env, test_weights, uniform_policy)
+
+
+    
+    opt_reward = env.evaluate_reward_group_wise(policy=opt_policy,states=test_pref)
+
+    unif_policy_rew = env.evaluate_reward_group_wise(policy=uniform_policy,states=test_pref)
+
     formatted_opt_reward = ", ".join([f"{reward:.4f}" for reward in opt_reward])
     formatted_unif_policy_rew = ", ".join([f"{reward:.4f}" for reward in unif_policy_rew])
     logger.info(
@@ -145,7 +154,7 @@ def main(args):
         num_trials_for_eval=num_trials_for_eval,
     )
     learned_oracle_opt_policy = learned_env.get_opt_policy()
-    learned_oracle_opt_reward = env.evaluate_reward_group_wise(policy=learned_oracle_opt_policy)
+    learned_oracle_opt_reward = env.evaluate_reward_group_wise(policy=learned_oracle_opt_policy,states=test_pref)
 
     formatted_learned_oracle_opt_reward  = ", ".join([f"{reward:.4f}" for reward in learned_oracle_opt_reward])
     logger.info(f"Learned oracle reward: {formatted_learned_oracle_opt_reward}")
@@ -172,16 +181,16 @@ def main(args):
     )
 
     # reward = agent.train_by_cvxpy(dataset=pref_data, env=env)
-    reward = agent.train(dataset=pref_data, env=env)
+    reward = agent.train(dataset=pref_data, val_dataset=val_pref,test_dataset=test_pref, env=env)
     formatted_reward  = ", ".join([f"{reward:.4f}" for reward in reward])
-    rew_error = [float(a-b) for a,b in zip(opt_reward,reward)]
+    rew_error = [float((a-b)*100/a) for a,b in zip(opt_reward,reward)]
     formatted_rew_error  = ", ".join([f"{reward:.4f}" for reward in rew_error])
     policy_param = agent.get_param
     logger.info(
         f"Policy parameter learned solely on the preference data (DPO): {policy_param}."
     )
     logger.info(
-        f"Training solely on the preference data (DPO), dataset size: {len(pref_data): d}, optimal reward: {formatted_opt_reward}, reward: {formatted_reward}, reward error: {formatted_rew_error}."
+        f"Training solely on the preference data (DPO), dataset size: {len(pref_data): d}, optimal reward: {formatted_opt_reward}, reward: {formatted_reward}, reward error percent: {formatted_rew_error}."
     )
     rew_err_dict, rew_dict = dict(), dict()
     rew_err_dict[args.pref_data_num] = rew_error

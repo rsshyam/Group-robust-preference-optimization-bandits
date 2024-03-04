@@ -56,6 +56,18 @@ def create_log_dir(args):
     os.makedirs(log_dir, exist_ok=True)
     return log_dir
 
+def create_log_dir_lb(args):
+    # env_name = args.env.replace("/", "_")
+    #run_id = "{}-{}-{}".format(
+    #    args.agent, args.seed, time.strftime("%Y-%m-%d-%H-%M-%S")
+    #)
+    run_id = "{}-{}".format(
+       args.agent, args.seed
+    )
+    log_dir = os.path.join(args.logdir, args.agent, run_id)
+    os.makedirs(log_dir, exist_ok=True)
+    return log_dir
+
 
 def save_code(save_dir):
     project_dir = PROJECT_DIR

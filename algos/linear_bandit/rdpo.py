@@ -8,7 +8,7 @@ from utils.utils import softmax, sigmoid
 from utils.logger import Logger
 
 
-class DirectPolicyOptimization:
+class RobustDirectPolicyOptimization:
     def __init__(
         self,
         state_dim: int,
@@ -144,16 +144,16 @@ class DirectPolicyOptimization:
     def train(self, dataset: List[Transition], env: LinearBandit) -> float:
         for step in range(self.num_iters):
             grad_norm = self.update_once(dataset)
-            if step % 2000 == 0:
+            if step % 20 == 0:
                 loss = self.evaluate_loss(dataset)
                 rew = self.evaluate_reward(env)
                 if self.logger:
                     self.logger.info(
-                        f"Iteration: {step: d}, loss: {loss: .4f}, grad_norm :{grad_norm:.4f}, reward: {rew: .4f}, params:{self.param}."
+                        f"Iteration: {step: d}, loss: {loss: .4f}, grad_norm :{grad_norm:.4f}, reward: {rew: .4f}."
                     )
                 else:
                     print(
-                        f"Iteration: {step: d}, loss: {loss: .4f}, grad_norm :{grad_norm:.4f}, reward: {rew: .4f}, params:{self.param}."
+                        f"Iteration: {step: d}, loss: {loss: .4f}, grad_norm :{grad_norm:.4f}, reward: {rew: .4f}."
                     )
 
         rew = self.evaluate_reward(env)

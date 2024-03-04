@@ -1,0 +1,1 @@
+sh scripts/run_glp_mult.sh --dpo_type 'dpo' --feature_type 'flipped' --step_size 0.1 --reg_coef 0.1 --ipo_grad_type 'Regression' --eval_metric 'argmax' --param_limit 5 --deterministic False --dpo_num_iters 17500 --lamba 1
