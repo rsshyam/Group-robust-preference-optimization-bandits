@@ -1,17 +1,16 @@
 # Policy Optimization in RLHF: The Impact of Out-of-preference Data
 
 
-This repository improves upon the code for experiments in the [paper](https://arxiv.org/abs/2312.10584): Policy Optimization in RLHF: The Impact of Out-of-preference Data.
+This repository improves upon the code for experiments in the [paper](https://arxiv.org/abs/2312.10584): **Policy Optimization in RLHF: The Impact of Out-of-preference Data**.
 
-The main scripts relevant for group robust DPO and IPO are 'scripts/run_glp_mult.sh' which calls upon 'experiments/run_group_linear_bandit_sep_theta_combined_det_ratio'.
+The main scripts relevant for group robust DPO and IPO are `scripts/run_glp_mult.sh` which calls upon `experiments/run_group_linear_bandit_sep_theta_combined_det_ratio`.
 
-They use the Group Linear Bandit environment in 'envs/group_linear_bandit.py'. The algorithms used are group DPO/IPO written together in 'algos/linear_bandit/group_dpo.py' and group robust DPO/IPO in 'algos/linear_bandit/group_robust_dpo.py'.
+They use the Group Linear Bandit environment in `envs/group_linear_bandit.py`. The algorithms used are group DPO/IPO written together in `algos/linear_bandit/group_dpo.py` and group robust DPO/IPO in `algos/linear_bandit/group_robust_dpo.py`.
 
-The 'algos/vectorized_dpo.py' improves the DPO implementation in terms of vectorization and linear gradients avoiding numerical instability.
-
-
+The `algos/vectorized_dpo.py` improves the DPO implementation in terms of vectorization and linear gradients avoiding numerical instability.
 
 The experiments show that policy optimization with out-of-preference data is key to unlocking the reward model's generalization power.
+
 
 
 <img src='./images/neural_bandit.png' width='600'>
