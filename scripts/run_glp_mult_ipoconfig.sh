@@ -5,30 +5,30 @@ set -x
 
 ACTION_NUM=8
 GROUP_NUM=2
-PREF_DATA_NUM=120 # change batch_size accordingly
-BATCH_SIZE=120
+PREF_DATA_NUM=300 # change batch_size accordingly
+BATCH_SIZE=300
 PG_NUM_ITERS=1000
 STATE_DIM=2
 
 
 # Default values
 DETERMINISTIC_RATIO_LIST='[1,1]'
-VAL_DETERMINISTIC='False'
-DPO_TYPE='rdpo'
+VAL_DETERMINISTIC='True'
+DPO_TYPE='dpo'
 STEP_SIZE=0.1
-REG_COEF=0.01
+REG_COEF=0.1
 #0.001
-EXP_STEP_SIZE=0.01
+EXP_STEP_SIZE=0.0001
 FEATURE_TYPE='swapped'
 #'flipped'
-WEIGHTED_BATCHES='true'
+WEIGHTED_BATCHES='false'
 RDPO_ADJ='0'
-EVAL_METRIC='expectation'
+EVAL_METRIC='argmax'
 IMPORTANCE_SAMPLING='False'
 IMPORTANCE_SAMPLING_WEIGHTS=None
 DETERMINISTIC_LIST='[False,False]'
 IPO_GRAD_TYPE='justdpo'
-PARAM_LIMIT=1
+PARAM_LIMIT=5
 DPO_NUM_ITERS=20000
 USE_CLOSED_FORM=False
 LAMBA=0
@@ -73,11 +73,11 @@ LOG_DIR="log-weighted-dpo_sep/rdpo/$(date +'%Y_%m_%d_%H_%M_%S')_$DPO_NUM_ITERS"
 mkdir -p "$LOG_DIR"
 
 # Generate weights from [0.1, 0.9] to [0.9, 0.1]
-for weight in $(seq 0.1 0.1 0.9)
+for weight in $(seq 0.1 0.1 0.9) # 0.1 0.1 0.9
 do
     WEIGHTS=[$weight,$(awk "BEGIN {print 1 - $weight}")]
     
-    for seed in 2022 2023 2024 2025 2026 2027 2028 2029 2030 2031 2032 2033 2034 2035 2036 2037 2038 2039 2040 #2021
+    for seed in 2021 2022 2023 2024 2025 2026 2027 2028 2029 2030 2031 2032 2033 2034 #2035 2036 2037 2038 2039 2040
     do
         python -m experiments.run_group_linear_bandit_sep_theta_combined_det_ratio \
         --mle_adaptive \

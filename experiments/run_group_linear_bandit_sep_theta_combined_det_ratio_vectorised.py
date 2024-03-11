@@ -7,8 +7,8 @@ import ast
 import wandb
 from algos.linear_bandit.mle import MLERewardLearning
 from algos.linear_bandit.pg import PolicyGradient
-from algos.linear_bandit.group_dpo import GroupDirectPolicyOptimization
-from algos.linear_bandit.group_robust_dpo import GroupRobustDirectPolicyOptimization
+from algos.linear_bandit.group_dpo_vectorised import GroupDirectPolicyOptimizationVectorised
+from algos.linear_bandit.group_robust_dpo_vectorised import GroupRobustDirectPolicyOptimizationVectorised
 #from envs.linear_bandit import LinearBandit, ret_feature_func
 from envs.group_linear_bandit import GroupLinearBanditSep, GroupLinearBandit, ret_feature_func
 from utils.io_utils import save_code, save_config, create_log_dir
@@ -98,6 +98,7 @@ def parse_args():
     parser.add_argument("--param_limit",type=int,default=1)
     parser.add_argument("--use_closed_form",  type=lambda x: (str(x).lower() == 'true'), default=False)
     parser.add_argument("--lamba",type=float,default=0)                    ## L2 regularisation on IPO regression for closed-form
+    parser.add_argument("--l2_reg_rdpo",type=float,default=0)              ## L2 regularisation for vec-RDPO
 
     parser.add_argument("--pg_num_iters", type=int, default=1000)          ## RMB
     parser.add_argument("--pg_adaptive", action="store_true")
@@ -105,7 +106,7 @@ def parse_args():
     parser.add_argument("--pg_step_size", type=float, default=0.1)
 
     parser.add_argument("--wandb_use", action="store_true")
-    parser.add_argument("--wandb_key", type=str, default="eb687170e674596d211e8f521a3524aac14a07db") ## Iason Key "cb1fbe601d5d40f7a5cbb7097ae65d4a368ab3bf"; Shyam key "eb687170e674596d211e8f521a3524aac14a07db"
+    parser.add_argument("--wandb_key", type=str, default="eb687170e674596d211e8f521a3524aac14a07db") ## Iason Key "cb1fbe601d5d40f7a5cbb7097ae65d4a368ab3bf"; Group-Project key "eb687170e674596d211e8f521a3524aac14a07db"
     parser.add_argument("--wandb_entity", type=str, default="robust-rl-project")#"group_rdpo_non_vec")
     parser.add_argument("--wandb_project", type=str, default="bandits_dpo")
     parser.add_argument("--wandb_group", type=str, default="group1")  ## unused
@@ -180,9 +181,9 @@ def main(args):
         else:
             tags=[f"num_iters_{args.dpo_num_iters}",f"adaptive_{args.dpo_adaptive}",f"step_size_{args.dpo_step_size}",f"beta_{args.reg_coef}"]
         if args.dpo_type=='dpo':
-            exp_name=args.wandb_name +"_"+args.dpo_type + "_" + str(args.seed)
+            exp_name=args.wandb_name +"_"+args.dpo_type + "_" + str(args.seed) + "_vectorised_fix_reg"
         else:
-            exp_name=args.wandb_name +"_"+args.dpo_type + "_" + str(args.rdpo_exp_step_size) +"_" + str(args.rdpo_batch_size) + '_' + str(args.rdpo_weighted_batches) + "_" + args.rdpo_adj  + "_" + str(args.seed)
+            exp_name=args.wandb_name +"_"+args.dpo_type + "_" + str(args.rdpo_exp_step_size) +"_" + str(args.rdpo_batch_size) + '_' + str(args.rdpo_weighted_batches) + "_" + args.rdpo_adj  + "_" + str(args.seed) + "_vectorised_fix_reg"
         wandb.init(
             group=f'state_dim{args.state_dim}'+f'action_num{args.action_num}'+f'group_num{args.group_num}'+f'pref_data_num{args.pref_data_num}'+f'weights{args.weights}'+f'feature_type{args.feature_type}'+f'eval_metric{args.eval_metric}',
             entity=args.wandb_entity,
@@ -284,7 +285,7 @@ def main(args):
         num_action=action_num, state_dim=state_dim, group_num=group_num, feature_type=args.feature_type
     )
     if args.dpo_type == 'dpo':
-        agent = GroupDirectPolicyOptimization(
+        agent = GroupDirectPolicyOptimizationVectorised(
             state_dim=state_dim,
             action_num=action_num,
             group_num=group_num,
@@ -300,10 +301,10 @@ def main(args):
             wandb_use=args.wandb_use,
             ipo_grad_type=args.ipo_grad_type,
             param_limit=args.param_limit,
-            lamba=args.lamba
+            lamba=args.lamba,
         )
     elif args.dpo_type == 'rdpo':
-        agent =  GroupRobustDirectPolicyOptimization(
+        agent =  GroupRobustDirectPolicyOptimizationVectorised(
             state_dim=state_dim,
             action_num=action_num,
             group_num=group_num,
@@ -326,10 +327,11 @@ def main(args):
             ipo_grad_type=args.ipo_grad_type,
             param_limit=args.param_limit,
             use_closed_form=args.use_closed_form,
-            lamba=args.lamba
+            l2_reg_rdpo=args.l2_reg_rdpo,
+            lamba=args.lamba,
         )
     else:
-        agent = GroupDirectPolicyOptimization(
+        agent = GroupDirectPolicyOptimizationVectorised(
             state_dim=state_dim,
             action_num=action_num,
             group_num=group_num,
@@ -346,7 +348,7 @@ def main(args):
             ipo_grad_type=args.ipo_grad_type,
             param_limit=args.param_limit,
             lamba=args.lamba,
-            train_agent=False
+            train_agent=False, # random_train() func called instead of train()
         )
 
     # reward = agent.train_by_cvxpy(dataset=pref_data, env=env)

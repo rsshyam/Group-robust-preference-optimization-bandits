@@ -13,7 +13,8 @@ class GroupLinearBandit:
         group_num: int,
         reward_param: np.ndarray,
         feature_func,
-        num_trials_for_eval: int = None
+        num_trials_for_eval: int = None,
+        logger = None
     ) -> None:
         self.state_dim = state_dim
         self.action_num = action_num
@@ -25,6 +26,7 @@ class GroupLinearBandit:
         self.cur_state = np.random.uniform(0, 1, self.state_dim)
 
         self.num_trials_for_eval = num_trials_for_eval
+        self.logger = logger
 
     def reset(self) -> np.ndarray:
         self.cur_state = np.random.uniform(0, 1, self.state_dim)
@@ -33,7 +35,7 @@ class GroupLinearBandit:
     def sample(self, action,group_id) -> float:
         assert action in self.action_space, "The input action is invalid."
         feature = self.feature_func(self.cur_state, action, group_id)
-        print(feature,self.reward_param)
+        #print(feature,self.reward_param)
         assert np.shape(feature) == np.shape(
             self.reward_param
         ), "The feature is invalid."
@@ -62,6 +64,28 @@ class GroupLinearBandit:
             return action_prob
 
         return opt_policy
+    
+    def get_true_policy(self):
+        def true_policy(state: np.ndarray, group_id: int):
+            # compute the optimal policy by enumerating the action space
+            feature_mat = np.array(
+                [
+                    self.feature_func(state, action_idx, group_id)
+                    for action_idx in range(self.action_num)
+                ],
+                dtype=np.float32,
+            )
+            assert np.shape(feature_mat) == (
+                self.action_num,
+                self.reward_param.size,
+            ), "The feature matrix is invalid."
+            rew_vec = np.matmul(feature_mat, self.reward_param)
+            
+            action_prob = softmax(rew_vec)
+
+            return action_prob
+
+        return true_policy
 
     def evaluate_reward(self, policy):
         """
@@ -103,7 +127,7 @@ class GroupLinearBandit:
 
         return rew
     
-    def evaluate_reward_group_wise(self, policy,states:Union[np.ndarray, list, None]):
+    def evaluate_reward_group_wise(self, policy, states:Union[np.ndarray, list, None] = None):
         """
         apply MC method to approximate the reward
         """
@@ -139,12 +163,58 @@ class GroupLinearBandit:
             
             kendall_tau_distance = calculate_kendall_tau_distance(reward_mat, action_mat)
 
-            print(f"Kendall Tau Distance: {kendall_tau_distance}")
+            print(f"Kendall Tau Distance for Group {group_id}: {kendall_tau_distance}")
 
             rew = np.sum(np.multiply(reward_mat, action_mat)) / self.num_trials_for_eval
             rewards.append(float(rew))
 
         return rewards
+    
+    def evaluate_KL_group_wise(self, policy, states:Union[np.ndarray, list, None]):
+        """
+        apply MC method to approximate the reward
+        """
+        KLs = []
+
+        if states is None:
+            state_mat = np.random.uniform(
+                0, 1, size=(self.num_trials_for_eval, self.state_dim)
+            )
+        elif isinstance(states, list):
+            assert isinstance(states[0], GroupTransition),\
+                f'expected list of GroupTransition not list of {type(states[0])}'
+            state_mat, _, _, _ = process_pref_grp_data(states)    
+        else:
+            raise NotImplementedError()  
+
+        true_policy=self.get_true_policy()
+        for group_id in range(self.group_num):
+            feature_tensor = []
+            kl_mat = []
+            for index in range(self.num_trials_for_eval):
+                state = state_mat[index, :]
+                action_prob = policy(state,group_id)
+                action_prob_true = true_policy(state,group_id)
+                
+                #if self.eval_metric_prob=='KL':
+                    #print(action_prob_true,action_prob,'kl_before')
+                kl_distance=entropy(action_prob_true,action_prob)
+                 
+               
+                kl_mat.append(kl_distance)
+               
+
+         
+            kl_mat = np.stack(kl_mat, axis=0)
+            #print(reward_mat,action_mat)
+            
+           
+            #print(f"Kendall Tau Distance: {kendall_tau_distance}")
+
+            rew = np.sum(kl_mat) / self.num_trials_for_eval
+            KLs.append(float(rew))
+
+        return KLs
     
 
 class GroupLinearBanditSep:

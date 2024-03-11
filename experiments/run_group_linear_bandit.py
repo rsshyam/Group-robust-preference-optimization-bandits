@@ -9,7 +9,7 @@ from algos.linear_bandit.mle import MLERewardLearning
 from algos.linear_bandit.pg import PolicyGradient
 from algos.linear_bandit.dpo import DirectPolicyOptimization
 from algos.linear_bandit.group_dpo import GroupDirectPolicyOptimization
-from envs.linear_bandit import LinearBandit, ret_feature_func
+#from envs.linear_bandit import LinearBandit, ret_feature_func
 from envs.group_linear_bandit import GroupLinearBandit, ret_feature_func
 from utils.io_utils import save_code, save_config, create_log_dir
 from utils.logger import Logger
@@ -21,35 +21,42 @@ from utils.collect_data import (
     merge_datasets,
     pref_to_rl,
 )
+from utils.utils import return_apt_weights
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="group_linear_bandit")
+    parser.add_argument("--env", type=str, default="group_linear_bandit")  ## Unused
     parser.add_argument("--state_dim", type=int, default=1)
     parser.add_argument("--action_num", type=int, default=4)
     parser.add_argument("--group_num", type=int, default=2)
-    parser.add_argument("--agent", type=str, default="pg")
+    parser.add_argument("--agent", type=str, default="pg")                 ## Unused
     parser.add_argument("--seed", type=int, default=2023)
     parser.add_argument("--logdir", type=str, default="log")
     #parser.add_argument("--flip_feature", action="store_true")
 
     parser.add_argument("--pref_data_num", type=int, default=500)
-    parser.add_argument('--weights',type=str,default='equal')
-    parser.add_argument("--mle_num_iters", type=int, default=100)
+    parser.add_argument('--weights',type=str,default='equal')              ## unique to Group Lin Bandit (not base) -> weights is equal (uniform group weights) or list weights for group proportions
+    parser.add_argument("--val_data_num", type=int, default=50)
+    parser.add_argument('--val_weights',type=str,default='equal')
+    parser.add_argument("--num_trials_for_eval", type=int, default=1000)
+    parser.add_argument('--test_weights',type=str,default='equal')
+
+    
+    parser.add_argument("--mle_num_iters", type=int, default=100)          ## MLE params to learn with CVXPY ...
     parser.add_argument("--mle_adaptive", action="store_true")
     parser.add_argument("--mle_ada_coef", type=float, default=1.0)
     parser.add_argument("--mle_step_size", type=float, default=0.1)
 
-    parser.add_argument("--rl_data_ratio", type=float, default=4)
-    parser.add_argument("--reg_coef", type=float, default=1.0)
+    parser.add_argument("--rl_data_ratio", type=float, default=4)          ## RBM-PO+ out-of-preference data -- unused
+    parser.add_argument("--reg_coef", type=float, default=1.0)             ## β in KL Divergence DPO/RBM
 
     parser.add_argument("--dpo_num_iters", type=int, default=200)
-    parser.add_argument("--dpo_adaptive", action="store_true")
-    parser.add_argument("--dpo_ada_coef", type=float, default=1.0)
-    parser.add_argument("--dpo_step_size", type=float, default=0.1)
+    parser.add_argument("--dpo_adaptive", action="store_true")             ## adaptive DPO step size by historic gradient accumulation
+    parser.add_argument("--dpo_ada_coef", type=float, default=1.0)         ## step size --> ada coef / sqrt(historic gradient)
+    parser.add_argument("--dpo_step_size", type=float, default=0.1)        ## non-adaptive step size
 
-    parser.add_argument("--pg_num_iters", type=int, default=1000)
+    parser.add_argument("--pg_num_iters", type=int, default=1000)          ## RMB-PO & RMB-PO+ params... -- unused
     parser.add_argument("--pg_adaptive", action="store_true")
     parser.add_argument("--pg_ada_coef", type=float, default=1.0)
     parser.add_argument("--pg_step_size", type=float, default=0.1)
@@ -81,12 +88,13 @@ def main(args):
     group_num = args.group_num
 
     feature_dim = 2 * args.state_dim
-    num_trials_for_eval = 10000
-    feature_func = ret_feature_func(num_action=action_num, state_dim=state_dim, group_num=group_num)
+    num_trials_for_eval = args.num_trials_for_eval
+    feature_func = ret_feature_func(num_action=action_num, state_dim=state_dim, group_num=group_num, feature_type="flipped")
     # reward_param = np.random.standard_normal(feature_dim)
     # reward_param = np.array([2.0, 1.0, 1.0, 2.0], np.float32)
     reward_param = np.array([1.0, 2.0], np.float32)
     # reward_param /= np.sqrt(np.sum(np.square(reward_param)))
+    
     env = GroupLinearBandit(
         state_dim,
         action_num,
@@ -94,6 +102,7 @@ def main(args):
         reward_param,
         feature_func,
         num_trials_for_eval=num_trials_for_eval,
+        logger=logger,
     )
     opt_policy = env.get_opt_policy()
     opt_reward = env.evaluate_reward_group_wise(policy=opt_policy)
@@ -105,7 +114,17 @@ def main(args):
         weights=weights.tolist()
     else:
         weights=ast.literal_eval(args.weights)
+    #pref_data = collect_group_preference_data(args.pref_data_num, env, weights, uniform_policy)
+
+        # reward = agent.train_by_cvxpy(dataset=pref_data, env=env)
+    weights,val_weights,test_weights=return_apt_weights(args.weights,group_num),return_apt_weights(args.val_weights,group_num),return_apt_weights(args.test_weights,group_num)
+    opt_policy = env.get_opt_policy()
+    uniform_policy = ret_uniform_policy_group(action_num)
+    
+    #Generate datasets:
     pref_data = collect_group_preference_data(args.pref_data_num, env, weights, uniform_policy)
+    val_pref = collect_group_preference_data(args.val_data_num, env, val_weights, uniform_policy)
+    test_pref = collect_group_preference_data(num_trials_for_eval, env, test_weights, uniform_policy)
     
     formatted_opt_reward = ", ".join([f"{reward:.4f}" for reward in opt_reward])
     formatted_unif_policy_rew = ", ".join([f"{reward:.4f}" for reward in unif_policy_rew])
@@ -151,7 +170,7 @@ def main(args):
     logger.info(f"Train a policy solely on the preference data (DPO).")
     # learn the policy
     policy_feature_func = ret_feature_func(
-        num_action=action_num, state_dim=state_dim, group_num=group_num
+        num_action=action_num, state_dim=state_dim, group_num=group_num, feature_type="flipped"
     )
     agent = GroupDirectPolicyOptimization(
         state_dim=state_dim,
@@ -168,8 +187,8 @@ def main(args):
         logger=logger,
     )
 
-    # reward = agent.train_by_cvxpy(dataset=pref_data, env=env)
-    reward = agent.train(dataset=pref_data, env=env)
+    reward = agent.train(dataset=pref_data, val_dataset=val_pref, test_dataset=test_pref, env=env, optimal_reward=opt_reward)
+
     formatted_reward  = ", ".join([f"{reward:.4f}" for reward in reward])
     rew_error = [float(a-b) for a,b in zip(opt_reward,reward)]
     formatted_rew_error  = ", ".join([f"{reward:.4f}" for reward in rew_error])

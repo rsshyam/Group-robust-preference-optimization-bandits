@@ -19,7 +19,7 @@ for weight in $(seq 0.0 0.1 1.0)
 do
     WEIGHTS=[$weight,$(awk "BEGIN {print 1 - $weight}")]
     
-    for seed in 2021 2022 2023 2024 2025 2026 2027 2028 2029 2030
+    for seed in 2021 #2022 2023 2024 2025 2026 2027 2028 2029 2030
     do
         python -m experiments.run_group_linear_bandit \
         --mle_adaptive \

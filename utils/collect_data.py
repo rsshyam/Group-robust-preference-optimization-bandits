@@ -66,7 +66,7 @@ def collect_group_preference_data(
     pref_dataset = []
     action_num = env.action_num
     group_num = env.group_num
-    print(weights)
+    print('Weights: ', weights)
     group_id_1=0
     group_id_2=0
     group_counts = np.round(np.array(weights) * num).astype(int)
@@ -101,7 +101,7 @@ def collect_group_preference_data(
             state, action_one, action_two, group_id, reward_one, reward_two, pref
         )
         pref_dataset.append(group_transition)
-    print(group_id_1,group_id_2)
+    print('Group counts: ', group_id_1,group_id_2)
     return pref_dataset
 
 def collect_group_preference_data_plot(
@@ -110,7 +110,7 @@ def collect_group_preference_data_plot(
     pref_dataset = []
     action_num = env.action_num
     group_num = env.group_num
-    print(weights)
+    print('Weights: ', weights)
     group_id_1=0
     group_id_2=0
     group_counts = np.round(np.array(weights) * num).astype(int)
@@ -159,7 +159,7 @@ def collect_group_preference_data_plot(
     plt.legend()
     neatplot.save_figure(f'Prob_distributions_{num}')
     plt.close()
-    print(group_id_1,group_id_2)
+    print('Group counts: ', group_id_1,group_id_2)
     return pref_dataset
 
 def collect_group_preference_data_partial_deterministic(

@@ -9,7 +9,7 @@ from algos.linear_bandit.mle import MLERewardLearning
 from algos.linear_bandit.pg import PolicyGradient
 from algos.linear_bandit.dpo import DirectPolicyOptimization
 from algos.linear_bandit.group_dpo import GroupDirectPolicyOptimization
-from envs.linear_bandit import LinearBandit, ret_feature_func
+#from envs.linear_bandit import LinearBandit, ret_feature_func
 from envs.group_linear_bandit import GroupLinearBanditSep, GroupLinearBandit, ret_feature_func
 from utils.io_utils import save_code, save_config, create_log_dir
 from utils.logger import Logger
@@ -87,10 +87,10 @@ def main(args):
 
     feature_dim = 2 * args.state_dim
     num_trials_for_eval = args.num_trials_for_eval
-    feature_func = ret_feature_func(num_action=action_num, state_dim=state_dim, group_num=group_num)
+    feature_func = ret_feature_func(num_action=action_num, state_dim=state_dim, group_num=group_num, feature_type="swapped")
     # reward_param = np.random.standard_normal(feature_dim)
     # reward_param = np.array([2.0, 1.0, 1.0, 2.0], np.float32)
-    reward_param = np.array([[1.0, 2.0],[2.0,1.0]], np.float32)
+    reward_param = np.array([[1.0, 3.0],[3.0,1.0]], np.float32)
 
     assert group_num == np.shape(reward_param)[0], "The feature is invalid."
 
@@ -163,7 +163,7 @@ def main(args):
     logger.info(f"Train a policy solely on the preference data (DPO).")
     # learn the policy
     policy_feature_func = ret_feature_func(
-        num_action=action_num, state_dim=state_dim, group_num=group_num
+        num_action=action_num, state_dim=state_dim, group_num=group_num, feature_type="swapped"
     )
     agent = GroupDirectPolicyOptimization(
         state_dim=state_dim,
@@ -181,7 +181,7 @@ def main(args):
     )
 
     # reward = agent.train_by_cvxpy(dataset=pref_data, env=env)
-    reward = agent.train(dataset=pref_data, val_dataset=val_pref,test_dataset=test_pref, env=env)
+    reward = agent.train(dataset=pref_data, val_dataset=val_pref,test_dataset=test_pref, env=env, optimal_reward=opt_reward)
     formatted_reward  = ", ".join([f"{reward:.4f}" for reward in reward])
     rew_error = [float((a-b)*100/a) for a,b in zip(opt_reward,reward)]
     formatted_rew_error  = ", ".join([f"{reward:.4f}" for reward in rew_error])

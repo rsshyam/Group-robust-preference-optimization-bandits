@@ -8,7 +8,8 @@ __pycache__/
 
 # Result
 result/
-log/
+log*/
+wandb_runs/
 
 # Distribution / packaging
 .idea

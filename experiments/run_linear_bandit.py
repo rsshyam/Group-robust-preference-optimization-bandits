@@ -135,6 +135,8 @@ def main(args):
     policy_feature_func = ret_feature_func(
         num_action=action_num, state_dim=state_dim, is_flip=args.flip_feature
     )
+    print(f'Flipped policy feature: {args.flip_feature}')
+    print(f'Adaptive-step DPO: {args.dpo_adaptive}')
     agent = DirectPolicyOptimization(
         state_dim=state_dim,
         action_num=action_num,

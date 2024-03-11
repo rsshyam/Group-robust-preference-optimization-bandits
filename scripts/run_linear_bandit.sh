@@ -9,8 +9,9 @@ PG_NUM_ITERS=1000
 REG_COEF=0.5
 STATE_DIM=1
 flipped=false
-dpo_num_iters=100000
-dpo_step_size=1.0
+dpo_num_iters=10000
+dpo_step_size=0.01
+#1.0
 
 # Create log directory with timestamp
 LOG_DIR="log-dpo/dpo/$(date +'%Y_%m_%d_%H_%M_%S')_$DPO_NUM_ITERS"
