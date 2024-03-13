@@ -37,6 +37,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         use_closed_form: bool=False,                    ## closed-form regression solution for IPO
         lamba: float =0,                                ## L2 regularisation for closed-form regression of IPO objective in Linear Bandits case
         l2_reg_rdpo: float = 0,                         ## L2 regularisation for vectorised RDPO
+        reg_by_group_weights: float = 0,           ## regularisation on vectorised RDPO by subtracting step*group_weights^2
         train_agent: bool=True                          ## if True, use self.train(); else, use self.random_train() func
     ) -> None:
         self.state_dim = state_dim
@@ -84,6 +85,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         self.use_closed_form=use_closed_form
         self.lamba=lamba
         self.l2_reg_rdpo = l2_reg_rdpo
+        self.reg_by_group_weights = reg_by_group_weights
         self.train_agent=train_agent
         print(self.step_size,weighted_batches,self.adj)
         
@@ -231,9 +233,14 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         group_loss = group_loss/cur_group_counts
 
         if self.l2_reg_rdpo != 0:
-            group_loss += self.l2_reg_rdpo * np.linalg.norm(self.param) # regularisation L2
-            group_grad += 2 * self.l2_reg_rdpo * self.param
-            grad += 2 * self.l2_reg_rdpo * self.param # theta-gradient on loss L2 norm λ . ||θ||_F
+            group_loss += self.l2_reg_rdpo * np.linalg.norm(self.param) / cur_group_counts # regularisation L2
+            
+            for g in range(self.group_num):
+                group_grad[g] += 2 * self.l2_reg_rdpo * self.param / cur_group_counts[g]
+            grad += 2 * self.l2_reg_rdpo * self.param / len(sampled_group_transitions) # theta-gradient on loss L2 norm λ . ||θ||_F
+        elif self.reg_by_group_weights != 0:
+            group_loss -= self.reg_by_group_weights * np.square(self.group_weights) # Paper Theorem 3.1
+            # grad is invariant to this negative term, so no update
 
         if self.importance_sampling==False:
             #print(self.group_weights,group_loss,np.exp(self.exp_step_size*group_loss))
@@ -704,7 +711,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         loss /= len(dataset)
 
         if self.l2_reg_rdpo != 0:
-            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) # regularisation L2
+            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) / len(dataset) # regularisation L2
 
         return loss
     
@@ -740,7 +747,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         loss /= len(dataset)
 
         if self.l2_reg_rdpo != 0:
-            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) # regularisation L2
+            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) / len(dataset) # regularisation L2
 
         loss=loss*self.group_num###for correct comparison as unweighted train loss should multiply 1/num_groups to all
         return loss
@@ -779,7 +786,10 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         loss = loss/counts
 
         if self.l2_reg_rdpo != 0:
-            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) # regularisation L2
+            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) / len(dataset) # regularisation L2
+        elif self.reg_by_group_weights != 0:
+            loss -= self.reg_by_group_weights * np.square(self.group_weights) # Paper Theorem 3.1
+            # grad is invariant to this negative term, so no update
 
         return loss
     

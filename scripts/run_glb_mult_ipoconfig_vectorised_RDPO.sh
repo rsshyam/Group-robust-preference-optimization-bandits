@@ -14,11 +14,12 @@ STATE_DIM=2
 # Default values
 DETERMINISTIC_RATIO_LIST='[1,1]'
 VAL_DETERMINISTIC='True'
-DPO_TYPE='rdpo' # rdpo for RobustDPO & dpo for DPO (both VECTORISED)
+DPO_TYPE='dpo'
+#'rdpo' # rdpo for RobustDPO & dpo for DPO (both VECTORISED)
 STEP_SIZE=0.1
 REG_COEF=0.1
 #0.001
-EXP_STEP_SIZE=0.1 # was 0.0001
+EXP_STEP_SIZE=0.05 # was 0.0001
 FEATURE_TYPE='swapped'
 #'flipped'
 WEIGHTED_BATCHES='false'
@@ -31,7 +32,8 @@ IPO_GRAD_TYPE='justdpo'
 PARAM_LIMIT=5
 DPO_NUM_ITERS=20000
 USE_CLOSED_FORM=False
-L2_REG_RDPO=0.001
+L2_REG_RDPO=0.05
+#REG_BY_GROUP_WEIGHTS=0.05
 LAMBA=0
 
 # Parse command-line options
@@ -79,7 +81,7 @@ for weight in $(seq 0.1 0.1 0.1) # 0.1 0.1 0.9
 do
     WEIGHTS=[$weight,$(awk "BEGIN {print 1 - $weight}")]
     
-    for seed in 2021 #2022 2023 #2024 2025 2026 2027 2028 2029 2030 2031 2032 2033 2034 # #2035 2036 2037 2038 2039 2040
+    for seed in 2022 2023 2024 2025 2026 2027 2028 2029 2030 2031 2032 2033 2034 # 2021 #2035 2036 2037 2038 2039 2040
     do
         python -m experiments.run_group_linear_bandit_sep_theta_combined_det_ratio_vectorised \
         --mle_adaptive \

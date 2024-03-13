@@ -30,7 +30,12 @@ def ret_uniform_policy_group(action_num: int = 0):
     assert action_num > 0, "The number of actions should be positive."
 
     def uniform_policy_group(state: np.ndarray = None, group_id: int = None):
-        action_prob = np.full(shape=action_num, fill_value=1.0 / action_num)
+        if len(state.shape)==1:
+            action_prob = np.full(shape=action_num, fill_value=1.0 / action_num)
+        elif len(state.shape)==2:
+            action_prob = np.full(shape=(state.shape[0],action_num), fill_value=1.0 / action_num)
+        else:
+            raise Exception('state dimension >2 in uniform policy')
         return action_prob
 
     return uniform_policy_group

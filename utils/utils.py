@@ -8,6 +8,11 @@ def softmax(arr: np.ndarray) -> np.ndarray:
     softmax_arr = softmax_arr / np.sum(softmax_arr)
     return softmax_arr
 
+def softmax_2D(arr: np.ndarray) -> np.ndarray:
+    assert len(np.shape(arr)) == 2, "The input array is not 2-dim."
+    softmax_arr = np.exp(arr - np.max(arr,axis=1).reshape(-1,1))
+    softmax_arr = softmax_arr / np.sum(softmax_arr,axis=1).reshape(-1,1)
+    return softmax_arr
 
 def sigmoid(x: float) -> float:
     return 1.0 / (1.0 + np.exp(-x))

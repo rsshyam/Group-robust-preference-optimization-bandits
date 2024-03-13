@@ -10,7 +10,7 @@ from algos.linear_bandit.pg import PolicyGradient
 from algos.linear_bandit.group_dpo_vectorised import GroupDirectPolicyOptimizationVectorised
 from algos.linear_bandit.group_robust_dpo_vectorised import GroupRobustDirectPolicyOptimizationVectorised
 #from envs.linear_bandit import LinearBandit, ret_feature_func
-from envs.group_linear_bandit import GroupLinearBanditSep, GroupLinearBandit, ret_feature_func
+from envs.group_linear_bandit import GroupLinearBanditSep, GroupLinearBandit, ret_feature_func, ret_feature_func_vectorised
 from utils.io_utils import save_code, save_config, create_log_dir
 from utils.logger import Logger
 from utils.collect_data import (
@@ -99,6 +99,7 @@ def parse_args():
     parser.add_argument("--use_closed_form",  type=lambda x: (str(x).lower() == 'true'), default=False)
     parser.add_argument("--lamba",type=float,default=0)                    ## L2 regularisation on IPO regression for closed-form
     parser.add_argument("--l2_reg_rdpo",type=float,default=0)              ## L2 regularisation for vec-RDPO
+    parser.add_argument("--reg_by_group_weights",type=float,default=0)     ## vec-RDPO regularisation by group weights subtraction
 
     parser.add_argument("--pg_num_iters", type=int, default=1000)          ## RMB
     parser.add_argument("--pg_adaptive", action="store_true")
@@ -181,9 +182,9 @@ def main(args):
         else:
             tags=[f"num_iters_{args.dpo_num_iters}",f"adaptive_{args.dpo_adaptive}",f"step_size_{args.dpo_step_size}",f"beta_{args.reg_coef}"]
         if args.dpo_type=='dpo':
-            exp_name=args.wandb_name +"_"+args.dpo_type + "_" + str(args.seed) + "_vectorised_fix_reg"
+            exp_name=args.wandb_name +"_"+args.dpo_type + "_" + str(args.seed) + f"_vectorised_fix_reg{args.l2_reg_rdpo}"
         else:
-            exp_name=args.wandb_name +"_"+args.dpo_type + "_" + str(args.rdpo_exp_step_size) +"_" + str(args.rdpo_batch_size) + '_' + str(args.rdpo_weighted_batches) + "_" + args.rdpo_adj  + "_" + str(args.seed) + "_vectorised_fix_reg"
+            exp_name=args.wandb_name +"_"+args.dpo_type + "_" + str(args.rdpo_exp_step_size) +"_" + str(args.rdpo_batch_size) + '_' + str(args.rdpo_weighted_batches) + "_" + args.rdpo_adj  + "_" + str(args.seed) + f"_vectorised_fix_reg{args.l2_reg_rdpo}"
         wandb.init(
             group=f'state_dim{args.state_dim}'+f'action_num{args.action_num}'+f'group_num{args.group_num}'+f'pref_data_num{args.pref_data_num}'+f'weights{args.weights}'+f'feature_type{args.feature_type}'+f'eval_metric{args.eval_metric}',
             entity=args.wandb_entity,
@@ -328,6 +329,7 @@ def main(args):
             param_limit=args.param_limit,
             use_closed_form=args.use_closed_form,
             l2_reg_rdpo=args.l2_reg_rdpo,
+            reg_by_group_weights=args.reg_by_group_weights,
             lamba=args.lamba,
         )
     else:

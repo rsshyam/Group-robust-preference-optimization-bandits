@@ -504,6 +504,58 @@ def ret_feature_func(num_action: int, state_dim: int, group_num: int, feature_ty
 
     return feature_func
 
+def ret_feature_func_vectorised(num_action: int, state_dim: int, group_num: int, feature_type: str):
+    """
+    return the feature function for an arbitrary number of actions and any state dimension.
+    state passed must be a 2D array of multiple state vectors, of shape (num_states, state_dim)
+    """
+
+    def feature_func_vectorised(state: np.ndarray, action: int, group_id: int) -> np.ndarray:
+        assert action in range(num_action), "The input action is invalid."
+        assert group_id in range(group_num), f'{group_id}'
+
+        dim = 2 * state_dim
+        feature = np.zeros((state.shape[0], dim))
+        if feature_type=='same':
+            if group_id%2==0:
+                for idx in range(state_dim):
+                    feature[:, 2 * idx] = (action/num_action + 1) * np.cos(state[:, idx] * np.pi)###maybe add group_id related qty
+                    feature[:, 2 * idx + 1] = (1.0 / (action/num_action + 1)) * np.sin(state[:, idx] * np.pi)
+            else:
+                for idx in range(state_dim):
+                    feature[:, 2 * idx] = (action/num_action + 1) * np.cos(state[:, idx] * np.pi)###maybe add group_id related qty
+                    feature[:, 2 * idx+1] = (1.0 / (action/num_action + 1)) * np.sin(state[:, idx] * np.pi)
+                    #feature[2 * idx] = (action + 1) * np.sin(state[idx] * np.pi)
+                    #feature[2 * idx + 1] = (1.0 / (action + 1)) * np.cos(state[idx] * np.pi)
+        elif feature_type=='swapped':
+            if group_id%2==0:
+                for idx in range(state_dim):
+                    feature[:, 2 * idx] = (action/num_action + 1) * np.cos(state[:, idx] * np.pi)###maybe add group_id related qty
+                    feature[:, 2 * idx + 1] = (1.0 / (action/num_action + 1)) * np.sin(state[:, idx] * np.pi)
+            else:
+                for idx in range(state_dim):
+                    feature[:, 2 * idx+1] = (action/num_action + 1) * np.cos(state[:, idx] * np.pi)###maybe add group_id related qty
+                    feature[:, 2 * idx] = (1.0 / (action/num_action + 1)) * np.sin(state[:, idx] * np.pi)
+                    #feature[2 * idx] = (action + 1) * np.sin(state[idx] * np.pi)
+                    #feature[2 * idx + 1] = (1.0 / (action + 1)) * np.cos(state[idx] * np.pi)
+        elif feature_type=='flipped':
+            if group_id%2==0:
+                for idx in range(state_dim):
+                    feature[:, 2 * idx] = (action/num_action + 1) * np.cos(state[:, idx] * np.pi)###maybe add group_id related qty
+                    feature[:, 2 * idx + 1] = (1.0 / (action/num_action + 1)) * np.sin(state[:, idx] * np.pi)
+            else:
+                for idx in range(state_dim):
+                    #feature[2 * idx] = (action + 1) * np.cos(state[idx] * np.pi)###maybe add group_id related qty
+                    #feature[2 * idx+1] = (1.0 / (action + 1)) * np.sin(state[idx] * np.pi)
+                    feature[:, 2 * idx] = (action/num_action + 1) * np.sin(state[:, idx] * np.pi)
+                    feature[:, 2 * idx + 1] = (1.0 / (action/num_action + 1)) * np.cos(state[:, idx] * np.pi)
+        else:
+            raise NotImplementedError
+
+        return feature
+
+    return feature_func_vectorised
+
 
 def ret_feature_func_debug(num_action: int, state_dim: int, group_num: int):
     """
