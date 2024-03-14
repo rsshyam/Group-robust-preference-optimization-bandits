@@ -252,16 +252,17 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             raise ValueError('value not implemented')
         
         neg_cur_data_grad = (self.reg_coef * coef * feature_diff_all)
-        group_grad[group_id] = np.sum(-neg_cur_data_grad, axis=0) / cur_group_counts[group_id]   ############### had self.group_weights[group_id] scaling before
+        for group_id in range(self.group_num):
+            group_indices = group_id_idx_all[group_id]
+            group_grad[group_id] = np.sum(-neg_cur_data_grad[group_indices], axis=0) / len(sampled_group_transitions) #/ cur_group_counts[group_id]   ############### had self.group_weights[group_id] scaling before
         grad = np.sum(-neg_cur_data_grad, axis=0) / len(sampled_group_transitions)               ############### had self.group_weights[group_id] scaling before
         group_loss /= cur_group_counts
 
         if self.l2_reg_rdpo != 0:
-            group_loss += self.l2_reg_rdpo * np.linalg.norm(self.param) / cur_group_counts # regularisation L2
-            
+            group_loss += self.l2_reg_rdpo * np.linalg.norm(self.param) #/ cur_group_counts # regularisation L2
             for g in range(self.group_num):
-                group_grad[g] += 2 * self.l2_reg_rdpo * self.param / cur_group_counts[g]
-            grad += 2 * self.l2_reg_rdpo * self.param / len(sampled_group_transitions) # theta-gradient on loss L2 norm λ . ||θ||_F
+                group_grad[g] += 2 * self.l2_reg_rdpo * self.param #/ cur_group_counts[g]
+            grad += 2 * self.l2_reg_rdpo * self.param #/ len(sampled_group_transitions) # theta-gradient on loss L2 norm λ . ||θ||_F
         elif self.reg_by_group_weights != 0:
             group_loss -= self.reg_by_group_weights * np.square(self.group_weights) # Paper Theorem 3.1
             # grad is invariant to this negative term, so no update
@@ -478,7 +479,9 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             raise ValueError('value not implemented')
         
         neg_cur_data_grad = (self.reg_coef * coef * feature_diff_all)
-        group_grad[group_id] = np.sum(-self.group_weights[group_id]*neg_cur_data_grad, axis=0) / cur_group_counts   ############### had self.group_weights[group_id] scaling before
+        for group_id in range(self.group_num):
+            group_indices = group_id_idx_all[group_id]
+            group_grad[group_id] = np.sum(-self.group_weights[group_id]*neg_cur_data_grad[group_indices], axis=0) / len(sampled_group_transitions)   ############### had self.group_weights[group_id] scaling before
         grad = np.sum(-self.group_weights[group_id]*neg_cur_data_grad, axis=0) / len(sampled_group_transitions)     ############### had self.group_weights[group_id] scaling before
         group_loss /= cur_group_counts
             
@@ -639,7 +642,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             lin_diff = feature_diff_all @ self.param.reshape(self.feature_dim,1) - 0.5*(1/self.reg_coef)
             coef = lin_diff
 
-        loss = np.sum(self.group_weights[group_id]*np.square(coef)+self.adj[group_id]/np.sqrt(self.group_counts[group_id])) / len(dataset)
+        loss = np.sum(self.group_weights*np.square(coef)+self.adj[group_id]/np.sqrt(self.group_counts[group_id])) / len(dataset)
         loss = loss*self.group_num###for correct comparison as unweighted train loss should multiply 1/num_groups to all
         return loss
     
@@ -796,7 +799,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         loss /= len(dataset)
 
         if self.l2_reg_rdpo != 0:
-            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) / len(dataset) # regularisation L2
+            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) #/ len(dataset) # regularisation L2
 
         return loss
     
@@ -808,6 +811,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             policy = self.ret_policy()
 
         loss = 0.0
+        group_id_idx_all = defaultdict(list)
         feature_diff_all = np.zeros((len(dataset), self.feature_dim))
 
         for idx, transition in enumerate(dataset):
@@ -826,13 +830,16 @@ class GroupRobustDirectPolicyOptimizationVectorised:
                 self.feature_func(state, non_pref_act,group_id),
             )
             feature_diff_all[idx,:] = feat_pref_act - feat_non_pref_act
+            group_id_idx_all[group_id].append(idx)
 
         log_ratio_diff = self.reg_coef * feature_diff_all @ self.param.reshape(self.feature_dim,1)
-        loss = np.sum(-self.group_weights[group_id]*np.log(sigmoid(log_ratio_diff))+self.adj[group_id]/np.sqrt(self.group_counts[group_id]))
+        for group_id in range(self.group_num):
+            group_indices = group_id_idx_all[group_id]
+            loss = np.sum(-self.group_weights[group_id]*np.log(sigmoid(log_ratio_diff[group_indices]))+self.adj[group_id]/np.sqrt(self.group_counts[group_id]))
         loss /= len(dataset)
 
         if self.l2_reg_rdpo != 0:
-            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) / len(dataset) # regularisation L2
+            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) #/ len(dataset) # regularisation L2
 
         loss=loss*self.group_num###for correct comparison as unweighted train loss should multiply 1/num_groups to all
         return loss

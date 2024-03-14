@@ -8,7 +8,7 @@ import wandb
 from algos.linear_bandit.mle import MLERewardLearning
 from algos.linear_bandit.pg import PolicyGradient
 from algos.linear_bandit.group_dpo_vectorised import GroupDirectPolicyOptimizationVectorised
-from algos.linear_bandit.group_robust_dpo_vectorised import GroupRobustDirectPolicyOptimizationVectorised
+from algos.linear_bandit.group_robust_dpo_vectorised_gradfix import GroupRobustDirectPolicyOptimizationVectorised
 #from envs.linear_bandit import LinearBandit, ret_feature_func
 from envs.group_linear_bandit import GroupLinearBanditSep, GroupLinearBandit, ret_feature_func, ret_feature_func_vectorised
 from utils.io_utils import save_code, save_config, create_log_dir
@@ -331,6 +331,7 @@ def main(args):
             l2_reg_rdpo=args.l2_reg_rdpo,
             reg_by_group_weights=args.reg_by_group_weights,
             lamba=args.lamba,
+            report_iter=500,
         )
     else:
         agent = GroupDirectPolicyOptimizationVectorised(
