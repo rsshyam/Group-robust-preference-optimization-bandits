@@ -64,6 +64,8 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         self.hist_group_loss=np.zeros(group_num)
         # initialize the policy parameter
         self.param = np.random.uniform(0, param_limit, self.feature_dim)
+        print(f'PARAM INIT: {self.param}\n\n')
+
         self.weighted_batches=weighted_batches
         self.importance_sampling=importance_sampling
         if importance_sampling_weights=='None':
@@ -105,6 +107,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         param = self.param
 
         def policy(state: np.ndarray, group_id: int) -> np.ndarray:
+            #print('policy used -- PARAM ', param)
             arr = np.zeros(action_num, np.float32)
             for action_idx in range(action_num):
                 feature = feature_func(state, action_idx, group_id)
@@ -159,7 +162,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         self.param = self.param - step_size * grad
         return np.sqrt(np.sum(np.square(grad)))
     
-    def batch_update_once(self, dataset: List[GroupTransition],batch_size: int, unique_group_ids: Set[int]) -> float:
+    def batch_update_once_NONVEC(self, dataset: List[GroupTransition],batch_size: int, unique_group_ids: Set[int]) -> float:
 
         def sample_group_transition(group_id):
             #print(group_id)
@@ -185,19 +188,131 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             else:
                 sampled_group_transitions=dataset
 
+        # Display the sampled GroupTransitions
+        #for group_id, sampled_transition in zip(group_id_mat, sampled_group_transitions):
+        #    print(f"Group ID: {group_id}, Sampled Transition: {sampled_transition}")
+
+        group_loss_tot=np.zeros(self.group_num)
+        cur_group_counts=np.zeros(self.group_num)
+        
+        for transition in sampled_group_transitions:
+            grad = np.zeros_like(self.param)
+            group_loss=np.zeros(self.group_num)
+
+            state, action_one, action_two, group_id, pref = (
+                transition.state,
+                transition.action_0,
+                transition.action_1,
+                transition.group_id,
+                transition.pref,
+            )
+            pref_act = action_two if pref == 1 else action_one
+            non_pref_act = action_two if pref == 0 else action_one
+
+            feat_pref_act, feat_non_pref_act = (
+                self.feature_func(state, pref_act, group_id),
+                self.feature_func(state, non_pref_act,group_id),
+            )
+            #print(feat_pref_act,feat_non_pref_act,self.param)
+            cur_policy_act_prob = self.ret_action_prob(state,group_id)
+            ref_policy_act_prob = self.ref_policy(state,group_id)
+
+            log_ratio_diff = self.reg_coef * (feat_pref_act - feat_non_pref_act) @ self.param
+
+            if self.ipo_grad_type=='linear':
+                lin_diff=(feat_pref_act-feat_non_pref_act)@(self.param)-0.5*(1/self.reg_coef)
+                coef=-2*lin_diff/self.reg_coef
+            elif self.ipo_grad_type=='log':
+                log_diff=(
+                    np.log((cur_policy_act_prob[pref_act]*ref_policy_act_prob[non_pref_act])/(cur_policy_act_prob[non_pref_act]*ref_policy_act_prob[pref_act])+1e-6 )
+                )
+                coef=-2*(log_diff-0.5*(1/self.reg_coef))/self.reg_coef
+            elif self.ipo_grad_type=='justdpo':
+                coef = sigmoid(-log_ratio_diff)
+            else:
+                raise ValueError('value not implemented')
+            
+            neg_cur_data_grad = (
+                self.reg_coef * coef * (feat_pref_act - feat_non_pref_act)
+            )
+            grad = - self.group_weights[group_id]*neg_cur_data_grad#weighted gradient calculation
+
+            if self.ipo_grad_type=='linear':
+                lin_diff=(feat_pref_act-feat_non_pref_act)@(self.param)-0.5*(1/self.reg_coef)
+                group_loss[group_id]+=np.square(lin_diff)+self.adj[group_id]/np.sqrt(self.group_counts[group_id])
+            elif self.ipo_grad_type=='log':
+                #print('log')
+                log_diff=(
+                    np.log((cur_policy_act_prob[pref_act]*ref_policy_act_prob[non_pref_act])/(cur_policy_act_prob[non_pref_act]*ref_policy_act_prob[pref_act])+1e-6 )
+                )
+                group_loss[group_id]+=np.square((log_diff-0.5*(1/self.reg_coef)))+self.adj[group_id]/np.sqrt(self.group_counts[group_id])
+            elif self.ipo_grad_type=='justdpo':
+                group_loss[group_id]=-np.log(sigmoid(log_ratio_diff))+self.adj[group_id]/np.sqrt(self.group_counts[group_id]) #calculate group losses
+            else:
+                raise ValueError('value not implemented')
+
+            #grad /= len(sampled_group_transitions)
+            #group_loss=group_loss/cur_group_counts
+            if self.importance_sampling==False:
+                #print(self.group_weights,group_loss,np.exp(self.exp_step_size*group_loss))
+                self.group_weights[group_id]=self.group_weights[group_id]*np.exp(self.exp_step_size*group_loss[group_id])#update weights based on group loss calculated
+                #print(self.group_weights)
+                self.group_weights=self.group_weights/np.sum(self.group_weights)#normalize the weights
+            self.hist_grad_squared_norm += np.sum(np.square(grad))
+            self.hist_group_loss[group_id]+=group_loss[group_id]
+            group_loss_tot += group_loss[group_id]
+            cur_group_counts[group_id] += 1
+
+            if self.is_adaptive:
+                step_size = self.ada_coef / np.sqrt(self.hist_grad_squared_norm)
+            else:
+                step_size = self.step_size
+            self.param = self.param - step_size * (grad) 
+
+        self.group_loss = group_loss_tot / cur_group_counts
+
+        live_grad = 0.0
+        return np.sqrt(np.sum(np.square(grad))), live_grad
+    
+    def batch_update_once(self, dataset: List[GroupTransition],batch_size: int, unique_group_ids: Set[int]) -> float:
+
+        def sample_group_transition(group_id):
+            #print(group_id)
+            #print(dataset[0].group_id)
+            group_transitions_with_id = [transition for transition in dataset if transition.group_id == group_id]
+            return random.choice(group_transitions_with_id)
+
+        if self.weighted_batches==True:
+            if len(unique_group_ids)==self.group_num:
+                
+                group_id_mat=np.floor(np.random.uniform(
+                    0, self.group_num, size=(batch_size)
+                )).astype(int)#sample group_ids according to batchsize
+                #print(group_id_mat)
+            else:
+                group_id_mat = np.array(random.choices(list(unique_group_ids), k=batch_size)).astype(int)
+                #print(group_id_mat)
+            # Sample GroupTransitions for each group_id in the array
+            sampled_group_transitions = [sample_group_transition(group_id) for group_id in group_id_mat]#within that group choose a transition        ######################
+        else:
+            if batch_size<len(dataset):
+                sampled_group_transitions=random.choices(dataset,k=batch_size)
+            else:
+                sampled_group_transitions=dataset
+
         grad = np.zeros_like(self.param)
         group_grad = np.zeros((self.group_num, self.param.shape[-1]))
         group_loss = np.zeros(self.group_num)
         cur_group_counts = np.zeros(self.group_num)
 
         group_id_idx_all = defaultdict(list)
-        feature_diff_all = np.zeros((len(dataset), self.feature_dim))
+        feature_diff_all = np.zeros((len(sampled_group_transitions), self.feature_dim))
         pref_act_all = []
         non_pref_act_all = []
-        cur_policy_act_prob_all = np.zeros((len(dataset), self.action_num))
-        ref_policy_act_prob_all = np.zeros((len(dataset), self.action_num))
+        cur_policy_act_prob_all = np.zeros((len(sampled_group_transitions), self.action_num))
+        ref_policy_act_prob_all = np.zeros((len(sampled_group_transitions), self.action_num))
         
-        for idx, transition in enumerate(dataset):
+        for idx, transition in enumerate(sampled_group_transitions):
             state, action_one, action_two, group_id, pref = (
                 transition.state,
                 transition.action_0,
@@ -213,7 +328,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
 
             feat_pref_act, feat_non_pref_act = (
                 self.feature_func(state, pref_act, group_id),
-                self.feature_func(state, non_pref_act,group_id),
+                self.feature_func(state, non_pref_act, group_id),
             )
             feature_diff_all[idx,:] = feat_pref_act - feat_non_pref_act
             
@@ -231,13 +346,13 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             coef = sigmoid(-log_ratio_diff_all) # shape (len(dataset),1)
             for group_id in range(self.group_num):
                 group_indices = group_id_idx_all[group_id]
-                group_loss[group_id] = np.sum(-np.log(sigmoid(log_ratio_diff_all[group_indices]))+self.adj[group_id]/np.sqrt(self.group_counts[group_id])) #calculate group losses
+                group_loss[group_id] = np.sum(-np.log(sigmoid(log_ratio_diff_all[group_indices])))+self.adj[group_id]/np.sqrt(self.group_counts[group_id]) #calculate group losses
         elif self.ipo_grad_type=='linear':
             lin_diff = feature_diff_all @ self.param.reshape(self.feature_dim,1) - 0.5*(1/self.reg_coef)
             coef = -2*lin_diff/self.reg_coef
             for group_id in range(self.group_num):
                 group_indices = group_id_idx_all[group_id]
-                group_loss[group_id] = np.sum(np.square(lin_diff[group_indices])+self.adj[group_id]/np.sqrt(self.group_counts[group_id]))
+                group_loss[group_id] = np.sum(np.square(lin_diff[group_indices]))+self.adj[group_id]/np.sqrt(self.group_counts[group_id])
         elif self.ipo_grad_type=='log':
             row_indices = np.arange(cur_policy_act_prob_all.shape[0])
             log_diff = (
@@ -247,45 +362,51 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             coef = -2*(log_diff-0.5*(1/self.reg_coef))/self.reg_coef
             for group_id in range(self.group_num):
                 group_indices = group_id_idx_all[group_id]
-                group_loss[group_id] = np.sum(np.square((log_diff[group_indices]-0.5*(1/self.reg_coef)))+self.adj[group_id]/np.sqrt(self.group_counts[group_id]))
+                group_loss[group_id] = np.sum(np.square((log_diff[group_indices]-0.5*(1/self.reg_coef))))+self.adj[group_id]/np.sqrt(self.group_counts[group_id])
         else:
             raise ValueError('value not implemented')
         
         neg_cur_data_grad = (self.reg_coef * coef * feature_diff_all)
-        for group_id in range(self.group_num):
-            group_indices = group_id_idx_all[group_id]
-            group_grad[group_id] = np.sum(-neg_cur_data_grad[group_indices], axis=0) / len(sampled_group_transitions) #/ cur_group_counts[group_id]   ############### had self.group_weights[group_id] scaling before
         grad = np.sum(-neg_cur_data_grad, axis=0) / len(sampled_group_transitions)               ############### had self.group_weights[group_id] scaling before
         group_loss /= cur_group_counts
 
+        if self.importance_sampling==False:
+            self.group_weights = self.group_weights*np.exp(self.exp_step_size*group_loss)#update weights based on group loss calculated
+            self.group_weights = self.group_weights/np.sum(self.group_weights)#normalize the weights
+
+        weighted_group_grad = np.zeros_like(group_grad)
+        for group_id in range(self.group_num):
+            group_indices = group_id_idx_all[group_id]
+            weighted_group_grad[group_id] = np.sum(-neg_cur_data_grad[group_indices], axis=0) * self.group_weights[group_id] / len(sampled_group_transitions) # cur_group_counts[group_id] ############### had self.group_weights[group_id] scaling before
+        
         if self.l2_reg_rdpo != 0:
-            group_loss += self.l2_reg_rdpo * np.linalg.norm(self.param) #/ cur_group_counts # regularisation L2
             for g in range(self.group_num):
-                group_grad[g] += 2 * self.l2_reg_rdpo * self.param #/ cur_group_counts[g]
+                group_loss[g] += self.l2_reg_rdpo * np.square(np.linalg.norm(self.param)) #/ cur_group_counts # regularisation L2
+                weighted_group_grad[g] += 2 * self.l2_reg_rdpo * self.param * self.group_weights[g] #/ cur_group_counts[g]
             grad += 2 * self.l2_reg_rdpo * self.param #/ len(sampled_group_transitions) # theta-gradient on loss L2 norm λ . ||θ||_F
         elif self.reg_by_group_weights != 0:
             group_loss -= self.reg_by_group_weights * np.square(self.group_weights) # Paper Theorem 3.1
             # grad is invariant to this negative term, so no update
-
-        if self.importance_sampling==False:
-            #print(self.group_weights,group_loss,np.exp(self.exp_step_size*group_loss))
-            self.group_weights = self.group_weights*np.exp(self.exp_step_size*group_loss)#update weights based on group loss calculated
-            #print(self.group_weights)
-            self.group_weights = self.group_weights/np.sum(self.group_weights)#normalize the weights
-        self.hist_grad_squared_norm += np.sum(np.square(grad))
-        self.hist_group_loss += group_loss
-        self.group_loss = group_loss
 
         if self.is_adaptive:
             step_size = self.ada_coef / np.sqrt(self.hist_grad_squared_norm)
         else:
             step_size = self.step_size
 
-        #self.param = self.param - step_size * (grad) ## WRONG....
-        self.param = self.param - step_size * (self.group_weights @ group_grad) # not just grad but group-grad scaled
+        self.hist_grad_squared_norm += np.sum(np.square(grad))
+        self.hist_group_loss += group_loss
+        self.group_loss = group_loss
 
-        total_grad_update = grad * self.group_weights[group_id]
-        live_grad=self.WeightedRegression(sampled_group_transitions,self.lamba)
+        #self.param = self.param - step_size * (grad) ## WRONG....
+        self.param = self.param - step_size * np.sum(weighted_group_grad, axis=0) #(self.group_weights @ group_grad) # not just grad but group-grad scaled
+        #print(f'GROUP GRAD: grp0 {group_grad[0]} -- grp1 {group_grad[1]} -- total {group_grad[0] + group_grad[1]} -- matmul {2*(self.group_weights @ group_grad)} || PARAM {self.param}\n')
+
+        #print(f'PARAM -- NO REG {param_noreg} -- REG {self.param}')
+        live_grad = 0.0
+
+        self.theta_update = step_size * np.sum(weighted_group_grad, axis=0)
+        self.total_loss = sum(self.group_loss)
+
         return np.sqrt(np.sum(np.square(grad))), live_grad
     
     def batch_update_once_GROUPBATCH(self, dataset: List[GroupTransition],batch_size: int, unique_group_ids: Set[int]) -> float:
@@ -381,7 +502,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         #self.param = self.param - step_size * (grad) ## WRONG....
         self.param = self.param - step_size * updated_grad # not just grad but group-grad scaled
 
-        live_grad=self.WeightedRegression(sampled_group_transitions,self.lamba)
+        live_grad = 0.0
         return np.sqrt(np.sum(np.square(updated_grad))), live_grad
     
     def batch_update_closed_form(self, dataset: List[GroupTransition],batch_size: int, unique_group_ids: Set[int]) -> float:
@@ -507,6 +628,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         return np.sqrt(np.sum(np.square(grad))),live_grad
     
     def WeightedRegression(self, dataset: List[GroupTransition], lamba: float)-> float:
+        print('WEIGHTED REGRESSION\n\n')
         Y=[]
         w=[]
         for transition in dataset:
@@ -799,7 +921,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         loss /= len(dataset)
 
         if self.l2_reg_rdpo != 0:
-            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) #/ len(dataset) # regularisation L2
+            loss += self.l2_reg_rdpo * np.square(np.linalg.norm(self.param)) #/ len(dataset) # regularisation L2
 
         return loss
     
@@ -811,6 +933,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             policy = self.ret_policy()
 
         loss = 0.0
+
         group_id_idx_all = defaultdict(list)
         feature_diff_all = np.zeros((len(dataset), self.feature_dim))
 
@@ -835,11 +958,11 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         log_ratio_diff = self.reg_coef * feature_diff_all @ self.param.reshape(self.feature_dim,1)
         for group_id in range(self.group_num):
             group_indices = group_id_idx_all[group_id]
-            loss = np.sum(-self.group_weights[group_id]*np.log(sigmoid(log_ratio_diff[group_indices]))+self.adj[group_id]/np.sqrt(self.group_counts[group_id]))
+            loss += np.sum(-self.group_weights[group_id]*np.log(sigmoid(log_ratio_diff[group_indices]))+self.adj[group_id]/np.sqrt(self.group_counts[group_id]))
         loss /= len(dataset)
 
         if self.l2_reg_rdpo != 0:
-            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) #/ len(dataset) # regularisation L2
+            loss += self.l2_reg_rdpo * np.square(np.linalg.norm(self.param)) #/ len(dataset) # regularisation L2
 
         loss=loss*self.group_num###for correct comparison as unweighted train loss should multiply 1/num_groups to all
         return loss
@@ -883,10 +1006,10 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             group_indices = group_id_idx_all[group_id]
             loss[group_id] = np.sum(-np.log(sigmoid(log_ratio_diff[group_indices])))
         
-        loss = loss/counts
+        loss = loss/ counts # len(dataset) #
 
         if self.l2_reg_rdpo != 0:
-            loss += self.l2_reg_rdpo * np.linalg.norm(self.param) / len(dataset) # regularisation L2
+            loss += self.l2_reg_rdpo * np.square(np.linalg.norm(self.param)) #/ counts # regularisation L2
         elif self.reg_by_group_weights != 0:
             loss -= self.reg_by_group_weights * np.square(self.group_weights) # Paper Theorem 3.1
             # grad is invariant to this negative term, so no update
@@ -1133,6 +1256,9 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             else:
                 grad_norm,live_grad = self.batch_update_once(dataset,self.batch_size,unique_group_ids)
             if step % self.report_iter == 0:
+                print('UPDATE PARAM GroupRobustDPO: ', self.theta_update)
+                print('TOTAL LOSS GroupRobustDPO: ', self.total_loss)
+                
                 if self.ipo_grad_type=='justdpo':
                     train_loss = self.evaluate_loss(dataset)
                     val_loss = self.evaluate_loss(val_dataset)

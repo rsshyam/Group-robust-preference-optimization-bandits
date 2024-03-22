@@ -18,8 +18,7 @@ DPO_TYPE='rdpo'
 #'rdpo' # rdpo for RobustDPO & dpo for DPO (both VECTORISED)
 STEP_SIZE=0.1
 REG_COEF=0.1
-#0.001
-EXP_STEP_SIZE=0.01 # was 0.0001
+EXP_STEP_SIZE=0.1 # was 0.0001
 FEATURE_TYPE='swapped'
 #'flipped'
 WEIGHTED_BATCHES='false'
@@ -27,6 +26,7 @@ RDPO_ADJ='0'
 EVAL_METRIC='argmax'
 IMPORTANCE_SAMPLING='False'
 IMPORTANCE_SAMPLING_WEIGHTS=None
+#'0.8,0.2'
 DETERMINISTIC_LIST='[False,False]'
 IPO_GRAD_TYPE='justdpo'
 PARAM_LIMIT=5
@@ -34,9 +34,9 @@ DPO_NUM_ITERS=20000
 #20000
 USE_CLOSED_FORM=False
 L2_REG_RDPO=0
-#0.0001
 #REG_BY_GROUP_WEIGHTS=0.05
 LAMBA=0
+WANDB_GROUP='RDPO_converge_test'
 
 # Parse command-line options
 TEMP=$(getopt -o t:s:b:e:f: --long dpo_type:,step_size:,reg_coef:,batch_size:,exp_step_size:,feature_type:,weighted_batches:,rdpo_adj:,eval_metric:,importance_sampling:,importance_sampling_weights:,ipo_grad_type:,param_limit:,dpo_num_iters:,use_closed_form:,val_deterministic:,lamba:,deterministic_ratio_list:,deterministic_list: -n 'your_script.sh' -- "$@")
@@ -69,6 +69,7 @@ while true; do
     --deterministic_list) DETERMINISTIC_LIST="$2"; shift 2;;
     --l2_reg_rdpo) L2_REG_RDPO="$2"; shift 2;;
     --lamba) LAMBA="$2"; shift 2;;
+    --wandb_group) WANDB_GROUP="$2"; shift 2;;
     --) shift; break ;;
     *) echo "Internal error!" >&2; exit 1 ;;
   esac
@@ -116,7 +117,8 @@ do
         --val_deterministic ${VAL_DETERMINISTIC} \
         --deterministic_ratio_list ${DETERMINISTIC_RATIO_LIST} \
         --l2_reg_rdpo ${L2_REG_RDPO} \
-        --lamba ${LAMBA}
+        --lamba ${LAMBA} \
+        --wandb_group ${WANDB_GROUP}
     done
 done
 
