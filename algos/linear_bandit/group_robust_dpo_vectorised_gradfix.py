@@ -377,7 +377,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         weighted_group_grad = np.zeros_like(group_grad)
         for group_id in range(self.group_num):
             group_indices = group_id_idx_all[group_id]
-            weighted_group_grad[group_id] = np.sum(-neg_cur_data_grad[group_indices], axis=0) * self.group_weights[group_id] / len(sampled_group_transitions) # cur_group_counts[group_id] ############### had self.group_weights[group_id] scaling before
+            weighted_group_grad[group_id] = np.sum(-neg_cur_data_grad[group_indices], axis=0) * self.group_weights[group_id] / cur_group_counts[group_id] # len(sampled_group_transitions)  ############### had self.group_weights[group_id] scaling before
         
         if self.l2_reg_rdpo != 0:
             for g in range(self.group_num):
