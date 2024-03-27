@@ -377,12 +377,16 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         weighted_group_grad = np.zeros_like(group_grad)
         for group_id in range(self.group_num):
             group_indices = group_id_idx_all[group_id]
-            weighted_group_grad[group_id] = np.sum(-neg_cur_data_grad[group_indices], axis=0) * self.group_weights[group_id] / cur_group_counts[group_id] # len(sampled_group_transitions)  ############### had self.group_weights[group_id] scaling before
+            group_grad_weighted_sum = np.sum(-neg_cur_data_grad[group_indices], axis=0) * self.group_weights[group_id]
+            if self.importance_sampling==False: # divide grads by group counts in RDPO
+                weighted_group_grad[group_id] = group_grad_weighted_sum / cur_group_counts[group_id] # len(sampled_group_transitions)  ############### had self.group_weights[group_id] scaling before
+            else: # Importance Sampling has weights assigned to inv-freq and then group-grads divided by batch size
+                weighted_group_grad[group_id] = group_grad_weighted_sum / len(sampled_group_transitions)
         
         if self.l2_reg_rdpo != 0:
             for g in range(self.group_num):
                 group_loss[g] += self.l2_reg_rdpo * np.square(np.linalg.norm(self.param)) #/ cur_group_counts # regularisation L2
-                weighted_group_grad[g] += 2 * self.l2_reg_rdpo * self.param * self.group_weights[g] #/ cur_group_counts[g]
+                weighted_group_grad[g] += 2 * self.l2_reg_rdpo * self.param #* self.group_weights[g] #/ cur_group_counts[g]
             grad += 2 * self.l2_reg_rdpo * self.param #/ len(sampled_group_transitions) # theta-gradient on loss L2 norm λ . ||θ||_F
         elif self.reg_by_group_weights != 0:
             group_loss -= self.reg_by_group_weights * np.square(self.group_weights) # Paper Theorem 3.1

@@ -15,10 +15,10 @@ STATE_DIM=2
 DETERMINISTIC_RATIO_LIST='[1,1]'
 VAL_DETERMINISTIC='True'
 DPO_TYPE='rdpo'
-#'rdpo' # rdpo for RobustDPO & dpo for DPO (both VECTORISED)
-STEP_SIZE=0.1
+# rdpo for RobustDPO & dpo for DPO (both VECTORISED)
+STEP_SIZE=1
 REG_COEF=0.1
-EXP_STEP_SIZE=0.1 # was 0.0001
+EXP_STEP_SIZE=0.001 # was 0.0001
 FEATURE_TYPE='swapped'
 #'flipped'
 WEIGHTED_BATCHES='false'
@@ -30,13 +30,13 @@ IMPORTANCE_SAMPLING_WEIGHTS=None
 DETERMINISTIC_LIST='[False,False]'
 IPO_GRAD_TYPE='justdpo'
 PARAM_LIMIT=5
-DPO_NUM_ITERS=20000
+DPO_NUM_ITERS=80000
 #20000
 USE_CLOSED_FORM=False
 L2_REG_RDPO=0
 #REG_BY_GROUP_WEIGHTS=0.05
 LAMBA=0
-WANDB_GROUP='RDPO_converge_test'
+WANDB_GROUP='RDPO_importance_gradng'
 
 # Parse command-line options
 TEMP=$(getopt -o t:s:b:e:f: --long dpo_type:,step_size:,reg_coef:,batch_size:,exp_step_size:,feature_type:,weighted_batches:,rdpo_adj:,eval_metric:,importance_sampling:,importance_sampling_weights:,ipo_grad_type:,param_limit:,dpo_num_iters:,use_closed_form:,val_deterministic:,lamba:,deterministic_ratio_list:,deterministic_list: -n 'your_script.sh' -- "$@")
