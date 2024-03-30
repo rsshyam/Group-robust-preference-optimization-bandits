@@ -30,12 +30,7 @@ def ret_uniform_policy_group(action_num: int = 0):
     assert action_num > 0, "The number of actions should be positive."
 
     def uniform_policy_group(state: np.ndarray = None, group_id: int = None):
-        if len(state.shape)==1:
-            action_prob = np.full(shape=action_num, fill_value=1.0 / action_num)
-        elif len(state.shape)==2:
-            action_prob = np.full(shape=(state.shape[0],action_num), fill_value=1.0 / action_num)
-        else:
-            raise Exception('state dimension >2 in uniform policy')
+        action_prob = np.full(shape=action_num, fill_value=1.0 / action_num)
         return action_prob
 
     return uniform_policy_group
@@ -71,7 +66,7 @@ def collect_group_preference_data(
     pref_dataset = []
     action_num = env.action_num
     group_num = env.group_num
-    print('Weights: ', weights)
+    print(weights)
     group_id_1=0
     group_id_2=0
     group_counts = np.round(np.array(weights) * num).astype(int)
@@ -106,16 +101,16 @@ def collect_group_preference_data(
             state, action_one, action_two, group_id, reward_one, reward_two, pref
         )
         pref_dataset.append(group_transition)
-    print('Group counts: ', group_id_1,group_id_2)
+    print(group_id_1,group_id_2)
     return pref_dataset
 
 def collect_group_preference_data_plot(
-    num: int, env, weights: List[float], policy_func, deterministic: bool=False
+    num: int, env, weights: List[float], policy_func, feature_type: str, deterministic: bool=False
 ) -> List[GroupTransition]:
     pref_dataset = []
     action_num = env.action_num
     group_num = env.group_num
-    print('Weights: ', weights)
+    print(weights)
     group_id_1=0
     group_id_2=0
     group_counts = np.round(np.array(weights) * num).astype(int)
@@ -123,6 +118,7 @@ def collect_group_preference_data_plot(
     np.random.shuffle(group_ids)
     group_ids=group_ids[:num]
     probs=[]
+    crt_data=0
     for i in range(num):
         state = env.reset()
         #group_id= int(np.random.choice(np.arange(group_num),1,p=np.array(weights)))
@@ -145,6 +141,10 @@ def collect_group_preference_data_plot(
             bernoulli_param = sigmoid(reward_two - reward_one)
             probs.append(bernoulli_param)
             pref = np.random.binomial(1, bernoulli_param, 1)[0]
+            if reward_two - reward_one > 0 and pref==1:
+                crt_data+=1
+            elif reward_two - reward_one < 0 and pref==0:
+                crt_data+=1
         # pref=1 means that the second action is preferred over the first one
        
         #pref= 0 if reward_one>reward_two else 1
@@ -153,18 +153,49 @@ def collect_group_preference_data_plot(
         )
         pref_dataset.append(group_transition)
     probs=np.array(probs)
+    group_ids=np.array(group_ids)
     plt.figure(figsize=(12, 6))
+    # Calculate histogram bins
+    bins = np.arange(0, 1.2, 0.2)
+    bins1 =  np.arange(1, 2.2, 0.2)
     group1_indices = [i for i in range(num) if group_ids[i] == 1]
     group0_indices = [i for i in range(num) if group_ids[i] == 0]
-    plt.plot(group_ids[group0_indices], probs[group0_indices], label='prob_distribution_group_0')
-    plt.plot(group_ids[group1_indices], probs[group1_indices], label='prob_distribution_group_1')
-    plt.title('Prob_distributions')
+    #plt.plot(group_ids[group0_indices], probs[group0_indices], label='prob_distribution_group_0')
+    #plt.plot(group_ids[group1_indices], probs[group1_indices], label='prob_distribution_group_1')
+    # Plot histograms for each group separately
+    plt.hist(probs[group_ids == 0], bins=bins, label='Group 0', alpha=0.5, align='mid', histtype='barstacked', edgecolor='black')
+    plt.hist(probs[group_ids == 1], bins=bins, label='Group 1', alpha=0.5, align='mid', histtype='barstacked', edgecolor='black')
+    
+    # Calculate positions for each group's histogram
+    positions_group0 = np.arange(0, len(bins) - 1) * 2
+    positions_group1 = np.arange(0, len(bins) - 1) * 2 + 1
+    # Plot histograms for each group separately
+    #plt.hist(probs[group_ids == 0], bins=bins+, label='Group 0', alpha=0.5, align='mid', histtype='barstacked', edgecolor='black', weights=np.ones(len(probs[group_ids == 0])) / len(probs[group_ids == 0]), color='blue', position=positions_group0)
+    #plt.hist(probs[group_ids == 1], bins=bins, label='Group 1', alpha=0.5, align='mid', histtype='barstacked', edgecolor='black', weights=np.ones(len(probs[group_ids == 1])) / len(probs[group_ids == 1]), color='orange', position=positions_group1)
+        
+    plt.title(f'Prob_distributions_{feature_type}')
     plt.xlabel('Groups')
     plt.ylabel('Prob Values')
     plt.legend()
-    neatplot.save_figure(f'Prob_distributions_{num}')
+    neatplot.save_figure(f'Prob_distributions_{num}_{feature_type}')
     plt.close()
-    print('Group counts: ', group_id_1,group_id_2)
+    complement_crt_data = num - crt_data
+
+    # Plotting
+    plt.figure(figsize=(8, 6))
+
+    # Plotting crt_data
+    plt.bar('crt_data', crt_data, color='blue', label='crt_labelled_data')
+
+    # Plotting num - crt_data
+    plt.bar('wrong_data', complement_crt_data, color='orange', label='mis_labelled_data')
+
+    plt.title('Histogram of crt_data and wrong_data_{feature_type}')
+    plt.ylabel('Value')
+    plt.legend()
+    neatplot.save_figure(f'crt_labels_{num}_{feature_type}')
+    plt.close()
+    print(group_id_1,group_id_2)
     return pref_dataset
 
 def collect_group_preference_data_partial_deterministic(
@@ -225,6 +256,7 @@ def collect_group_preference_data_partial_deterministic_list(
     group_ids = [i for i, count in enumerate(group_counts) for _ in range(count)]
     np.random.shuffle(group_ids)
     group_ids=group_ids[:num]
+    crt_count=np.zeros(group_num)
     for i in range(num):
         state = env.reset()
         #group_id= int(np.random.choice(np.arange(group_num),1,p=np.array(weights)))
@@ -244,9 +276,14 @@ def collect_group_preference_data_partial_deterministic_list(
         epsilon=np.random.uniform(0,1)
         if deterministic_ratio_list[group_id]>=epsilon:
             pref= 0 if reward_one>reward_two else 1
+            crt_count[group_id]+=1
         else:
             bernoulli_param = sigmoid(reward_two - reward_one)
             pref = np.random.binomial(1, bernoulli_param, 1)[0]
+            if reward_two - reward_one >= 0 and pref==1:
+                crt_count[group_id]+=1
+            elif reward_two - reward_one <= 0 and pref==0:
+                crt_count[group_id]+=1
         # pref=1 means that the second action is preferred over the first one
        
         #pref= 0 if reward_one>reward_two else 1
@@ -255,7 +292,80 @@ def collect_group_preference_data_partial_deterministic_list(
         )
         pref_dataset.append(group_transition)
     print(group_id_1,group_id_2)
+    print(crt_count/group_counts*100,'crt_data')
     return pref_dataset
+
+
+def collect_uneven_group_preference_data_partial_deterministic_list(
+    num: int, env, weights: List[float], policy_func, deterministic_ratio_list: List[float]
+) -> List[GroupTransition]:
+    pref_dataset = []
+    action_num = env.action_num
+    group_num = env.group_num
+    print(weights)
+    group_id_1=0
+    group_id_2=0
+    group_counts = np.round(np.array(weights) * num).astype(int)
+    group_ids = [i for i, count in enumerate(group_counts) for _ in range(count)]
+    np.random.shuffle(group_ids)
+    group_ids=group_ids[:num]
+    crt_count=np.zeros(group_num)
+    for i in range(num):
+        state = env.reset()
+        #group_id= int(np.random.choice(np.arange(group_num),1,p=np.array(weights)))
+        group_id=group_ids[i]
+        #print(group_id)
+        if group_id==0:
+            group_id_1+=1
+        else:
+            group_id_2+=1
+        action_prob = policy_func(state,group_id)
+        sampled_action_1 = np.random.choice(
+            a=action_num, size=1, replace=False, p=action_prob  # replace=True
+        )
+        if group_id%2==0:
+            sampled_action_2=sampled_action_1+2*np.random.choice(
+                a=2, size=1, replace=False, p=[0.5,0.5]  # replace=True
+            )-1
+            #print(sampled_action_1,sampled_action_2)
+            if sampled_action_2>=action_num:
+                sampled_action_2=sampled_action_1-1
+            elif sampled_action_2<0:
+                sampled_action_2=sampled_action_1+1
+        else:
+            sampled_action_2=sampled_action_1+int((action_num/2))
+            if sampled_action_2>=action_num:
+                sampled_action_2=sampled_action_2%action_num
+
+        sampled_actions=[sampled_action_1,sampled_action_2]
+        action_one, action_two = sampled_actions[0], sampled_actions[1]
+        reward_one, reward_two = env.sample(action_one,group_id), env.sample(action_two,group_id)
+        # print(state, reward_one, reward_two, reward_two - reward_one)
+        epsilon=np.random.uniform(0,1)
+        if deterministic_ratio_list[group_id]>=epsilon:
+            pref= 0 if reward_one>reward_two else 1
+            crt_count[group_id]+=1
+        else:
+            bernoulli_param = sigmoid(reward_two - reward_one)
+            pref = np.random.binomial(1, bernoulli_param, 1)[0]
+            if reward_two - reward_one >= 0 and pref==1:
+                crt_count[group_id]+=1
+            elif reward_two - reward_one <= 0 and pref==0:
+                crt_count[group_id]+=1
+        # pref=1 means that the second action is preferred over the first one
+       
+        #pref= 0 if reward_one>reward_two else 1
+        group_transition = GroupTransition(
+            state, action_one, action_two, group_id, reward_one, reward_two, pref
+        )
+        pref_dataset.append(group_transition)
+    print(group_id_1,group_id_2)
+    print(crt_count/group_counts*100,'crt_data')
+    return pref_dataset
+
+
+
+
 
 def collect_group_preference_data_wth_deterministic_list(
     num: int, env, weights: List[float], policy_func, deterministic_list: List[bool]
