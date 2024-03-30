@@ -7,8 +7,8 @@ import ast
 import wandb
 from algos.linear_bandit.mle import MLERewardLearning
 from algos.linear_bandit.pg import PolicyGradient
-from algos.linear_bandit.group_dpo import GroupDirectPolicyOptimization
-from algos.linear_bandit.group_robust_dpo import GroupRobustDirectPolicyOptimization
+from algos.linear_bandit.group_dpo_vectorised import GroupDirectPolicyOptimizationVectorised
+from algos.linear_bandit.group_robust_dpo_vectorised_gradfix import GroupRobustDirectPolicyOptimizationVectorised
 #from envs.linear_bandit import LinearBandit, ret_feature_func
 from envs.group_linear_bandit import GroupLinearBanditSep, GroupLinearBandit, ret_feature_func
 from utils.io_utils import save_code, save_config, create_log_dir
@@ -299,7 +299,7 @@ def main(args):
         num_action=action_num, state_dim=state_dim, group_num=group_num, feature_type=args.feature_type
     )
     if args.dpo_type == 'dpo':
-        agent = GroupDirectPolicyOptimization(
+        agent = GroupDirectPolicyOptimizationVectorised(
             state_dim=state_dim,
             action_num=action_num,
             group_num=group_num,
@@ -315,10 +315,11 @@ def main(args):
             wandb_use=args.wandb_use,
             ipo_grad_type=args.ipo_grad_type,
             param_limit=args.param_limit,
-            lamba=args.lamba
+            lamba=args.lamba,
+            report_iter=500,
         )
     elif args.dpo_type == 'rdpo':
-        agent =  GroupRobustDirectPolicyOptimization(
+        agent =  GroupRobustDirectPolicyOptimizationVectorised(
             state_dim=state_dim,
             action_num=action_num,
             group_num=group_num,
@@ -341,11 +342,13 @@ def main(args):
             ipo_grad_type=args.ipo_grad_type,
             param_limit=args.param_limit,
             use_closed_form=args.use_closed_form,
+            l2_reg_rdpo=args.l2_reg_rdpo,
+            reg_by_group_weights=args.reg_by_group_weights,
             lamba=args.lamba,
-            use_theory=args.use_theory
+            report_iter=500,
         )
     else:
-        agent = GroupDirectPolicyOptimization(
+        agent = GroupDirectPolicyOptimizationVectorised(
             state_dim=state_dim,
             action_num=action_num,
             group_num=group_num,
@@ -362,7 +365,8 @@ def main(args):
             ipo_grad_type=args.ipo_grad_type,
             param_limit=args.param_limit,
             lamba=args.lamba,
-            train_agent=False
+            train_agent=False, # random_train() func called instead of train()
+            report_iter=500,
         )
 
     # reward = agent.train_by_cvxpy(dataset=pref_data, env=env)
