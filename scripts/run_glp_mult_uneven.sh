@@ -36,7 +36,7 @@ USE_WEIGHT_VAL=False
 USE_UNEVEN_GRP=False
 USE_UNEVEN_GRP_VAL=False
 USE_THEORY=False
-weight=0.2
+WEIGHT=0.2
 
 # Parse command-line options
 TEMP=$(getopt -o t:s:b:e:f: --long dpo_type:,step_size:,reg_coef:,batch_size:,exp_step_size:,feature_type:,weighted_batches:,rdpo_adj:,eval_metric:,importance_sampling:,importance_sampling_weights:,ipo_grad_type:,param_limit:,dpo_num_iters:,use_closed_form:,val_deterministic:,lamba:,deterministic_ratio_list:,deterministic_list:,use_weight_val:,val_deterministic_ratio_list:,use_uneven_grp:,use_uneven_grp_val:,use_theory: -n 'your_script.sh' -- "$@")
@@ -73,7 +73,7 @@ while true; do
     --use_uneven_grp_val) USE_UNEVEN_GRP_VAL="$2"; shift 2;;
     --use_theory) USE_THEORY="$2"; shift 2;;
     --val_deterministic_ratio_list) VAL_DETERMINISTIC_RATIO_LIST="$2"; shift 2;;
-    --weight) weight="$2"; shift 2;;
+    --weight) WEIGHT="$2"; shift 2;;
     --l2_reg_rdpo) L2_REG_RDPO="$2"; shift 2;;
     --) shift; break ;;
     *) echo "Internal error!" >&2; exit 1 ;;
@@ -84,7 +84,7 @@ done
 LOG_DIR="log-weighted-dpo_sep/rdpo/$(date +'%Y_%m_%d_%H_%M_%S')_$DPO_NUM_ITERS"
 mkdir -p "$LOG_DIR"
 
-WEIGHTS=[$weight,$(awk "BEGIN {print 1 - $weight}")]
+WEIGHTS=[$WEIGHT,$(awk "BEGIN {print 1 - $WEIGHT}")]
 
 for seed in 2021 2022 2023 2024 2025 2026 2027 2028 2029 2030 2031 2032 2033 2034 2035 2036 2037 2038 2039 2040 
 do
