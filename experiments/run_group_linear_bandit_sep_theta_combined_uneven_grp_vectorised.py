@@ -100,6 +100,7 @@ def parse_args():
     parser.add_argument("--param_limit",type=int,default=1)
     parser.add_argument("--use_closed_form",  type=lambda x: (str(x).lower() == 'true'), default=False)
     parser.add_argument("--lamba",type=float,default=0)
+    parser.add_argument("--l2_reg_rdpo",type=float,default=0)
     parser.add_argument("--use_weight_val", type=lambda x: (str(x).lower() == 'true'), default=False)
     parser.add_argument("--use_uneven_grp", type=lambda x: (str(x).lower() == 'true'), default=False)
     parser.add_argument("--use_uneven_grp_val", type=lambda x: (str(x).lower() == 'true'), default=False)

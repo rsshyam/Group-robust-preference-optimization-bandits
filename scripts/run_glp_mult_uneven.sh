@@ -31,6 +31,7 @@ PARAM_LIMIT=1
 DPO_NUM_ITERS=20000
 USE_CLOSED_FORM=False
 LAMBA=0
+L2_REG_RDPO=0
 USE_WEIGHT_VAL=False
 USE_UNEVEN_GRP=False
 USE_UNEVEN_GRP_VAL=False
@@ -73,6 +74,7 @@ while true; do
     --use_theory) USE_THEORY="$2"; shift 2;;
     --val_deterministic_ratio_list) VAL_DETERMINISTIC_RATIO_LIST="$2"; shift 2;;
     --weight) weight="$2"; shift 2;;
+    --l2_reg_rdpo) L2_REG_RDPO="$2"; shift 2;;
     --) shift; break ;;
     *) echo "Internal error!" >&2; exit 1 ;;
   esac
@@ -119,6 +121,7 @@ do
     --deterministic_ratio_list ${DETERMINISTIC_RATIO_LIST} \
     --val_deterministic_ratio_list ${VAL_DETERMINISTIC_RATIO_LIST} \
     --lamba ${LAMBA} \
+    --l2_reg_rdpo ${L2_REG_RDPO} \
     --use_weight_val ${USE_WEIGHT_VAL} \
     --use_uneven_grp ${USE_UNEVEN_GRP} \
     --use_uneven_grp_val ${USE_UNEVEN_GRP_VAL} \
