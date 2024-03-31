@@ -344,7 +344,7 @@ def main(args):
             param_limit=args.param_limit,
             use_closed_form=args.use_closed_form,
             l2_reg_rdpo=args.l2_reg_rdpo,
-            reg_by_group_weights=args.reg_by_group_weights,
+            reg_by_group_weights=0,
             lamba=args.lamba,
             report_iter=500,
         )
