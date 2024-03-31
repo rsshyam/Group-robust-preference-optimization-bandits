@@ -86,7 +86,7 @@ WEIGHTS=[$weight,$(awk "BEGIN {print 1 - $weight}")]
 
 for seed in 2021 2022 2023 2024 2025 2026 2027 2028 2029 2030 2031 2032 2033 2034 2035 2036 2037 2038 2039 2040 
 do
-    python -m experiments.run_group_linear_bandit_sep_theta_combined_uneven_grp \
+    python -m experiments.run_group_linear_bandit_sep_theta_combined_uneven_grp_vectorised \
     --mle_adaptive \
     --state_dim ${STATE_DIM} \
     --action_num ${ACTION_NUM} \
