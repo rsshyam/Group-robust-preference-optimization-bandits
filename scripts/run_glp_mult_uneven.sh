@@ -12,22 +12,22 @@ STATE_DIM=2
 
 
 # Default values
-DETERMINISTIC_RATIO_LIST='[0,0]'
-VAL_DETERMINISTIC_RATIO_LIST='[0,0]'
-VAL_DETERMINISTIC='False'
+DETERMINISTIC_RATIO_LIST='[1,1]'
+VAL_DETERMINISTIC_RATIO_LIST='[1,1]'
+VAL_DETERMINISTIC='True'
 DPO_TYPE='rdpo'
 STEP_SIZE=0.1
 REG_COEF=0.001
 EXP_STEP_SIZE=0.01
 FEATURE_TYPE='flipped'
-WEIGHTED_BATCHES='true'
+WEIGHTED_BATCHES='false'
 RDPO_ADJ='0'
-EVAL_METRIC='expectation'
+EVAL_METRIC='argmax'
 IMPORTANCE_SAMPLING='False'
 IMPORTANCE_SAMPLING_WEIGHTS=None
 DETERMINISTIC_LIST='[False,False]'
 IPO_GRAD_TYPE='justdpo'
-PARAM_LIMIT=1
+PARAM_LIMIT=5
 DPO_NUM_ITERS=20000
 USE_CLOSED_FORM=False
 LAMBA=0
@@ -37,6 +37,7 @@ USE_UNEVEN_GRP=False
 USE_UNEVEN_GRP_VAL=False
 USE_THEORY=False
 WEIGHT=0.2
+WANDB_GROUP='uneven_converge_test'
 
 # Parse command-line options
 TEMP=$(getopt -o t:s:b:e:f: --long dpo_type:,step_size:,reg_coef:,batch_size:,exp_step_size:,feature_type:,weighted_batches:,rdpo_adj:,eval_metric:,importance_sampling:,importance_sampling_weights:,ipo_grad_type:,param_limit:,dpo_num_iters:,use_closed_form:,val_deterministic:,lamba:,deterministic_ratio_list:,deterministic_list:,use_weight_val:,val_deterministic_ratio_list:,use_uneven_grp:,use_uneven_grp_val:,use_theory: -n 'your_script.sh' -- "$@")
@@ -74,6 +75,7 @@ while true; do
     --use_theory) USE_THEORY="$2"; shift 2;;
     --val_deterministic_ratio_list) VAL_DETERMINISTIC_RATIO_LIST="$2"; shift 2;;
     --weight) WEIGHT="$2"; shift 2;;
+    --wandb_group) WANDB_GROUP="$2"; shift 2;;
     --l2_reg_rdpo) L2_REG_RDPO="$2"; shift 2;;
     --) shift; break ;;
     *) echo "Internal error!" >&2; exit 1 ;;
@@ -85,6 +87,7 @@ LOG_DIR="log-weighted-dpo_sep/rdpo/$(date +'%Y_%m_%d_%H_%M_%S')_$DPO_NUM_ITERS"
 mkdir -p "$LOG_DIR"
 
 WEIGHTS=[$WEIGHT,$(awk "BEGIN {print 1 - $WEIGHT}")]
+echo WEIGHTS ${WEIGHTS}
 
 for seed in 2021 2022 2023 2024 2025 2026 2027 2028 2029 2030 2031 2032 2033 2034 2035 2036 2037 2038 2039 2040 
 do
@@ -98,6 +101,7 @@ do
     --pg_num_iters ${PG_NUM_ITERS} \
     --dpo_num_iters ${DPO_NUM_ITERS} \
     --wandb_use \
+    --wandb_group ${WANDB_GROUP} \
     --reg_coef ${REG_COEF} \
     --pg_adaptive \
     --seed ${seed} \
