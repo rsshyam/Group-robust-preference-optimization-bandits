@@ -21,6 +21,7 @@ REG_COEF=0.001
 EXP_STEP_SIZE=0.01
 FEATURE_TYPE='flipped'
 WEIGHTED_BATCHES='false'
+EXP_ADAPTIVE=0
 RDPO_ADJ='0'
 EVAL_METRIC='argmax'
 IMPORTANCE_SAMPLING='False'
@@ -40,7 +41,7 @@ WEIGHT=0.2
 WANDB_GROUP='uneven_converge_test'
 
 # Parse command-line options
-TEMP=$(getopt -o t:s:b:e:f: --long dpo_type:,step_size:,reg_coef:,batch_size:,exp_step_size:,feature_type:,weighted_batches:,rdpo_adj:,eval_metric:,importance_sampling:,importance_sampling_weights:,ipo_grad_type:,param_limit:,dpo_num_iters:,use_closed_form:,val_deterministic:,lamba:,deterministic_ratio_list:,deterministic_list:,use_weight_val:,val_deterministic_ratio_list:,use_uneven_grp:,use_uneven_grp_val:,use_theory:,weight:,wandb_group: -n 'your_script.sh' -- "$@")
+TEMP=$(getopt -o t:s:b:e:f: --long dpo_type:,step_size:,reg_coef:,batch_size:,exp_step_size:,feature_type:,weighted_batches:,rdpo_adj:,eval_metric:,exp_adaptive:,importance_sampling:,importance_sampling_weights:,ipo_grad_type:,param_limit:,dpo_num_iters:,use_closed_form:,val_deterministic:,lamba:,deterministic_ratio_list:,deterministic_list:,use_weight_val:,val_deterministic_ratio_list:,use_uneven_grp:,use_uneven_grp_val:,use_theory:,weight:,wandb_group: -n 'your_script.sh' -- "$@")
 if [ $? -ne 0 ]; then
     echo "Terminating..." >&2
     exit 1
@@ -57,6 +58,7 @@ while true; do
     -f|--exp_step_size) EXP_STEP_SIZE="$2"; shift 2 ;;
     --feature_type) FEATURE_TYPE="$2"; shift 2 ;;
     --weighted_batches) WEIGHTED_BATCHES="$2"; shift 2 ;;
+    --exp_adaptive) EXP_ADAPTIVE="$2"; shift 2;;
     --rdpo_adj) RDPO_ADJ="$2"; shift 2;;
     --eval_metric) EVAL_METRIC="$2"; shift 2;;
     --importance_sampling) IMPORTANCE_SAMPLING="$2"; shift 2;;
@@ -113,6 +115,7 @@ do
     --rdpo_batch_size ${BATCH_SIZE} \
     --feature_type ${FEATURE_TYPE} \
     --rdpo_weighted_batches ${WEIGHTED_BATCHES} \
+    --exp_adaptive ${EXP_ADAPTIVE} \
     --rdpo_adj ${RDPO_ADJ} \
     --eval_metric ${EVAL_METRIC} \
     --importance_sampling ${IMPORTANCE_SAMPLING} \

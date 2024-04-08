@@ -23,7 +23,8 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         step_size: float,                               ## η_θ step size for Gradient Descent on the DPO/IPO loss (if not is_adaptive)
         num_iters: int,                                 ## number of update steps on Training dataset
         exp_step_size: float,                           ## η_q step size for group weights
-        batch_size: int,                                # batch computation instead of for-loop over each datapoint in D_pref
+        batch_size: int,                                ## batch computation instead of for-loop over each datapoint in D_pref
+        exp_adaptive: float = 0,                        ## adaptive exp_step_size
         is_adaptive: bool = False,                      ## if is_adaptive, step size in Update step is adaptive to the historical grad
         ada_coef: float = None,                         ## coef scaling the inverted-sqrt historical grad in Update step if is_adaptive
         logger: Logger = None,                          ## logger
@@ -58,6 +59,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         self.exp_step_size=exp_step_size
         self.batch_size=batch_size
 
+        self.exp_adaptive = exp_adaptive
         self.is_adaptive = is_adaptive
         self.ada_coef = ada_coef
         self.hist_grad_squared_norm = 0.0
@@ -370,7 +372,18 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         grad = np.sum(-neg_cur_data_grad, axis=0) / len(sampled_group_transitions)               ############### had self.group_weights[group_id] scaling before
         group_loss /= cur_group_counts
 
-        if self.importance_sampling==False:
+        if self.l2_reg_rdpo != 0:
+            grad += 2 * self.l2_reg_rdpo * self.param #/ len(sampled_group_transitions) # theta-gradient on loss L2 norm λ . ||θ||_F
+        self.hist_grad_squared_norm += np.sum(np.square(grad))
+
+        if self.importance_sampling is False:
+            if self.exp_adaptive > 0:
+                # Geometric exponential decay
+                self.exp_step_size /= self.exp_adaptive
+                #np.sqrt(self.hist_grad_squared_norm)
+            #else:
+            #    exp_step_size = self.exp_step_size
+
             self.group_weights = self.group_weights*np.exp(self.exp_step_size*group_loss)#update weights based on group loss calculated
             self.group_weights = self.group_weights/np.sum(self.group_weights)#normalize the weights
 
@@ -387,7 +400,6 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             for g in range(self.group_num):
                 group_loss[g] += self.l2_reg_rdpo * np.square(np.linalg.norm(self.param)) #/ cur_group_counts # regularisation L2
                 weighted_group_grad[g] += 2 * self.l2_reg_rdpo * self.param #* self.group_weights[g] #/ cur_group_counts[g]
-            grad += 2 * self.l2_reg_rdpo * self.param #/ len(sampled_group_transitions) # theta-gradient on loss L2 norm λ . ||θ||_F
         elif self.reg_by_group_weights != 0:
             group_loss -= self.reg_by_group_weights * np.square(self.group_weights) # Paper Theorem 3.1
             # grad is invariant to this negative term, so no update
@@ -397,7 +409,6 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         else:
             step_size = self.step_size
 
-        self.hist_grad_squared_norm += np.sum(np.square(grad))
         self.hist_group_loss += group_loss
         self.group_loss = group_loss
 

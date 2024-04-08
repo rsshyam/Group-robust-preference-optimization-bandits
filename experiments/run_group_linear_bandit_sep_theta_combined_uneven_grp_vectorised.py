@@ -87,6 +87,7 @@ def parse_args():
 
     parser.add_argument("--dpo_type", type=str,default='dpo')
     parser.add_argument("--dpo_num_iters", type=int, default=200)
+    parser.add_argument("--exp_adaptive", type=float, default=0.0)
     parser.add_argument("--dpo_adaptive", action="store_true")
     parser.add_argument("--dpo_ada_coef", type=float, default=1.0)
     parser.add_argument("--dpo_step_size", type=float, default=0.1)
@@ -310,6 +311,7 @@ def main(args):
             reg_coef=args.reg_coef,
             step_size=args.dpo_step_size,
             num_iters=args.dpo_num_iters,
+            exp_adaptive=args.exp_adaptive,
             is_adaptive=args.dpo_adaptive,
             ada_coef=args.dpo_ada_coef,
             logger=logger,
@@ -330,6 +332,7 @@ def main(args):
             reg_coef=args.reg_coef,
             step_size=args.dpo_step_size,
             num_iters=args.dpo_num_iters,
+            exp_adaptive=args.exp_adaptive,
             is_adaptive=args.dpo_adaptive,
             ada_coef=args.dpo_ada_coef,
             batch_size=args.rdpo_batch_size,
@@ -359,6 +362,7 @@ def main(args):
             reg_coef=args.reg_coef,
             step_size=args.dpo_step_size,
             num_iters=args.dpo_num_iters,
+            exp_adaptive=args.exp_adaptive,
             is_adaptive=args.dpo_adaptive,
             ada_coef=args.dpo_ada_coef,
             logger=logger,
