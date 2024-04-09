@@ -378,13 +378,12 @@ class GroupRobustDirectPolicyOptimizationVectorised:
 
         if self.importance_sampling is False:
             if self.exp_adaptive > 0:
-                # Geometric exponential decay
-                self.exp_step_size /= self.exp_adaptive
-                #np.sqrt(self.hist_grad_squared_norm)
-            #else:
-            #    exp_step_size = self.exp_step_size
+                # Geometric exponential decay == self.exp_step_size /= self.exp_adaptive
+                exp_step_size = self.exp_step_size * self.exp_adaptive / np.sqrt(self.hist_grad_squared_norm)
+            else:
+                exp_step_size = self.exp_step_size
 
-            self.group_weights = self.group_weights*np.exp(self.exp_step_size*group_loss)#update weights based on group loss calculated
+            self.group_weights = self.group_weights*np.exp(exp_step_size*group_loss)#update weights based on group loss calculated
             self.group_weights = self.group_weights/np.sum(self.group_weights)#normalize the weights
 
         weighted_group_grad = np.zeros_like(group_grad)
