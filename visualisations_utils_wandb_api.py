@@ -70,7 +70,7 @@ def process_runs(runs, field, time_field='epoch', agg='mean'):
                        
         processed_runs.append(df_filtered)
         
-    return processed_runs
+    return processed_runs # list[df]
             
 def process_max_fields(runs, fields, maximum=True, time_field='epoch', x_percent_rmv=None):
     

@@ -203,7 +203,7 @@ if __name__ == "__main__":
         # Download runs for the current filters_dict
         runs = download_runs(entity, project, filters_dict)
         all_runs.append(runs)
-        print(len(runs))
+        print(len(runs), type(runs))
         metrics_history = {}
 
         for metric in metrics_to_collect:
@@ -216,9 +216,8 @@ if __name__ == "__main__":
 
         # Accumulate metrics data for each configuration
         for metric in metrics_to_collect:
-            print(metrics_history[metric])
-            print('\n\n\nHIIIIII')
             all_metrics_history[metric].append(metrics_history[metric])
+            # all_metrics_history[metric] is a list of dataframes for processed runs
             
     iteration_len=0
     iteration_index=0
@@ -260,13 +259,13 @@ if __name__ == "__main__":
     for i, filters_dict in enumerate(filters_dicts):
         for metric in metrics_to_collect:
             values_matrix = all_metrics_history[metric][i]
-            print('Val Matrix: ', values_matrix)
-            print('Type: ', type(values_matrix))
-            avg_values = np.mean(values_matrix, axis=0)
-            print('Avg Values: ', avg_values)
-            sem_values = sem(all_metrics_history[metric][i], axis=0)
-            all_avg_metrics_at_iterations[metric].append(avg_values.ravel())
-            all_sem_metrics_at_iterations[metric].append(sem_values.ravel())
+            #print('Val Matrix: ', values_matrix)
+            #print('Type: ', type(values_matrix))
+            avg_values = list(map(lambda x: np.mean(x, axis=0).ravel(), values_matrix))
+            #print('Avg Values: ', avg_values)
+            sem_values = list(map(lambda x: sem(x, axis=0).ravel(), values_matrix))
+            all_avg_metrics_at_iterations[metric].append(avg_values)#.ravel())
+            all_sem_metrics_at_iterations[metric].append(sem_values)#.ravel())
 
     
     # Plot metrics at 2000 iterations with error area
