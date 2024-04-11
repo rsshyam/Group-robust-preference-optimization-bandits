@@ -28,21 +28,43 @@ if __name__ == "__main__":
     ripo_pr='Robust IPO Prac'
     ipo='IPO'
     imp_samp='Importance_sampling'
-    setting='uneven_balanced'
-    if 'imbalanced' in setting:
-        group = 'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1'
-        weights_array = np.array(group.split('weights[')[-1].split(']')[0].split(','), dtype=float)
-    else:
-        group='state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1'
-        weights_array = np.array(group.split('weights[')[-1].split(']')[0].split(','), dtype=float)
-    pref_data_num=group.split('pref_data_num')[1].split('weights')[0]
+    
+    setting='uneven_balanced_ipo'
+    
+    # RIPO swapped
+    group_ripo_imbalanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1'
+    group_ripo_balanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1'
+    
+    # RDPO swapped
+    group_rdpo_even_imbalanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc'
+    group_dpo_even_imbalanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_dpo'
+    group_imp_even_imbalanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_imp'
 
+    group_rdpo_uneven_balanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc'
+    group_dpo_uneven_balanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo'
+    group_imp_uneven_balanced = group_dpo_uneven_balanced
+
+    group_rdpo_uneven_imbalanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc'
+    group_dpo_uneven_imbalanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_dpo'
+    group_imp_uneven_imbalanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_imp'
+
+    if 'imbalanced' in setting:
+        group_ipo = group_ripo_imbalanced
+    else:
+        group_ipo = group_ripo_balanced
+    
+    
+    
+    weights_array = np.array(group_ipo.split('weights[')[-1].split(']')[0].split(','), dtype=float)
+    pref_data_num=group_ipo.split('pref_data_num')[1].split('weights')[0]
+
+    # IPO Filters
     filters_dict_rdpo_lamba_theory_even = {
         'config.dpo_type': 'rdpo',
         'config.importance_sampling': False,
         'config.dpo_num_iters': 100,
         'config.rdpo_exp_step_size': 0.01,
-        'group': group,
+        'group': group_ipo,
         'State': 'finished',
         'config.lamba': 0,
         'config.use_uneven_grp': False,
@@ -54,7 +76,7 @@ if __name__ == "__main__":
         'config.importance_sampling': False,
         'config.dpo_num_iters': 100,
         'config.rdpo_exp_step_size': 0.01,
-        'group': group,
+        'group': group_ipo,
         'State': 'finished',
         'config.lamba': 0,
         'config.use_uneven_grp': False,
@@ -65,7 +87,7 @@ if __name__ == "__main__":
         'config.dpo_type': 'rdpo',
         'config.importance_sampling': True,
         'config.dpo_num_iters': 10,
-        'group': group,
+        'group': group_ipo,
         'State': 'finished',
         'config.lamba': 0,
         'config.use_uneven_grp': False,
@@ -76,7 +98,7 @@ if __name__ == "__main__":
         'config.dpo_type': 'rdpo',
         'config.importance_sampling': True,
         'config.dpo_num_iters': 10,
-        'group': group,
+        'group': group_ipo,
         'State': 'finished',
         'config.lamba': 0,
         'config.use_uneven_grp': False,
@@ -88,7 +110,7 @@ if __name__ == "__main__":
         'config.importance_sampling': False,
         'config.dpo_num_iters': 100,
         'config.rdpo_exp_step_size': 0.01,
-        'group': group,
+        'group': group_ipo,
         'State': 'finished',
         'config.lamba': 0,
         'config.use_uneven_grp': True,
@@ -100,7 +122,7 @@ if __name__ == "__main__":
         'config.importance_sampling': False,
         'config.dpo_num_iters': 100,
         'config.rdpo_exp_step_size': 0.01,
-        'group': group,
+        'group': group_ipo,
         'State': 'finished',
         'config.lamba': 0,
         'config.use_uneven_grp': True,
@@ -111,7 +133,7 @@ if __name__ == "__main__":
         'config.dpo_type': 'rdpo',
         'config.importance_sampling': True,
         'config.dpo_num_iters': 10,
-        'group': group,
+        'group': group_ipo,
         'State': 'finished',
         'config.lamba': 0,
         'config.use_uneven_grp': True,
@@ -122,24 +144,57 @@ if __name__ == "__main__":
         'config.dpo_type': 'rdpo',
         'config.importance_sampling': True,
         'config.dpo_num_iters': 10,
-        'group': group,
+        'group': group_ipo,
         'State': 'finished',
         'config.lamba': 0,
         'config.use_uneven_grp': True,
         'config.importance_sampling_weights': {'$in': ['0.5,0.5']}
     }
-    
- 
+
+    # RDPO Filters
+    filters_dict_rdpo_even_imbalanced = {'group': group_rdpo_even_imbalanced, 'State': 'finished'}
+    filters_dict_dpo_even_imbalanced = {'group': group_dpo_even_imbalanced, 'State': 'finished'}
+    filters_dict_imp_even_imbalanced = {'group': group_imp_even_imbalanced, 'State': 'finished'}
+
+    filters_dict_rdpo_uneven_balanced = {'group': group_rdpo_uneven_balanced, 'State': 'finished'}
+    filters_dict_dpo_uneven_balanced = {'group': group_dpo_uneven_balanced, 'State': 'finished'}
+
+    filters_dict_rdpo_uneven_imbalanced = {'group': group_rdpo_uneven_imbalanced, 'State': 'finished'}
+    filters_dict_dpo_uneven_imbalanced = {'group': group_dpo_uneven_imbalanced, 'State': 'finished'}
+    filters_dict_imp_uneven_imbalanced = {'group': group_imp_uneven_imbalanced, 'State': 'finished'}
+
    
     # Assume you have the necessary functions and libraries imported
     metrics_to_collect = ['grad_norm', 'train_loss', 'reward_err_1', 'reward_err_2', 'reward_param_1', 'reward_param_2', 'reward_param_3', 'reward_param_4','group_weight_1','group_weight_2','val_loss','train_group_loss_1','train_group_loss_2','val_group_loss_1','val_group_loss_2','hist_group_loss_1','hist_group_loss_2','max_val_grp_loss','max_train_grp_loss','max_reward_err','max_kl_dist']
     # List of filters_dict values
-    filters_dict_even=[filters_dict_rdpo_lamba_theory_even,filters_dict_rdpo_lamba_avg_even,filters_dict_imp_samp_even,filters_dict_dpo_even]
-    filters_dict_uneven=[filters_dict_rdpo_lamba_theory_uneven,filters_dict_rdpo_lamba_avg_uneven,filters_dict_imp_samp_uneven,filters_dict_dpo_uneven]
-    if 'uneven' in setting:
-        filters_dicts=filters_dict_uneven
-    else:
-        filters_dicts=filters_dict_even
+    filters_dict_even_ipo = [filters_dict_rdpo_lamba_theory_even,filters_dict_rdpo_lamba_avg_even,filters_dict_imp_samp_even,filters_dict_dpo_even]
+    filters_dict_uneven_ipo = [filters_dict_rdpo_lamba_theory_uneven,filters_dict_rdpo_lamba_avg_uneven,filters_dict_imp_samp_uneven,filters_dict_dpo_uneven]
+    
+    filters_dict_even_imbal_rdpo = [filters_dict_rdpo_even_imbalanced,filters_dict_dpo_even_imbalanced,filters_dict_imp_even_imbalanced]
+    filters_dict_uneven_bal_rdpo = [filters_dict_rdpo_uneven_balanced,filters_dict_dpo_uneven_balanced]
+    filters_dict_uneven_imbal_rdpo = [filters_dict_rdpo_uneven_imbalanced,filters_dict_dpo_uneven_imbalanced,filters_dict_imp_uneven_imbalanced]
+    
+    if 'ipo' in setting:
+        if 'uneven' in setting:
+            filters_dicts=filters_dict_uneven_ipo
+        else:
+            filters_dicts=filters_dict_even_ipo
+    elif 'rdpo' in setting:
+        if 'even_imbalanced' in setting:
+            filters_dicts=filters_dict_even_imbal_rdpo
+        elif 'uneven_balanced' in setting:
+            filters_dicts=filters_dict_uneven_bal_rdpo
+        elif 'uneven_imbalanced' in setting:
+            filters_dicts=filters_dict_uneven_imbal_rdpo
+    elif 'all' in setting:
+        if 'uneven' in setting:
+            if 'balanced' in setting:
+                filters_dicts=filters_dict_uneven_ipo.extend(filters_dict_uneven_bal_rdpo)
+            else:
+                filters_dicts=filters_dict_uneven_ipo.extend(filters_dict_uneven_imbal_rdpo)
+        else:
+            filters_dicts=filters_dict_even_ipo.extend(filters_dict_even_imbal_rdpo)
+
     # Initialize dictionaries to accumulate metrics data
     all_metrics_history = {metric: [] for metric in metrics_to_collect}
     all_runs=[]
@@ -161,6 +216,8 @@ if __name__ == "__main__":
 
         # Accumulate metrics data for each configuration
         for metric in metrics_to_collect:
+            print(metrics_history[metric])
+            print('\n\n\nHIIIIII')
             all_metrics_history[metric].append(metrics_history[metric])
             
     iteration_len=0
@@ -203,8 +260,10 @@ if __name__ == "__main__":
     for i, filters_dict in enumerate(filters_dicts):
         for metric in metrics_to_collect:
             values_matrix = all_metrics_history[metric][i]
-            #print(values_matrix)
+            print('Val Matrix: ', values_matrix)
+            print('Type: ', type(values_matrix))
             avg_values = np.mean(values_matrix, axis=0)
+            print('Avg Values: ', avg_values)
             sem_values = sem(all_metrics_history[metric][i], axis=0)
             all_avg_metrics_at_iterations[metric].append(avg_values.ravel())
             all_sem_metrics_at_iterations[metric].append(sem_values.ravel())
