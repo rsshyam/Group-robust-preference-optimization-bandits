@@ -10,6 +10,9 @@ __pycache__/
 result/
 log*/
 wandb_runs/
+wandb-plots-final/
+wandb-plots-final-synthetic/
+.png
 
 # Distribution / packaging
 .idea
