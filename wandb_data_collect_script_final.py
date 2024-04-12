@@ -10,8 +10,9 @@ from visualisations_utils_wandb_api import (
     )
 
 import os
+import sys
 import neatplot
-neatplot.set_style()
+neatplot.set_style('notex')
 
 if __name__ == "__main__":
     # Specify the parameters for your data collection
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     ipo='IPO'
     imp_samp='Importance_sampling'
     
-    setting='uneven_balanced_ipo'
+    setting='uneven_balanced_rdpo'
     
     # RIPO swapped
     group_ripo_imbalanced = 'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1'
@@ -244,6 +245,8 @@ if __name__ == "__main__":
                 filters_dicts=filters_dict_uneven_ipo.extend(filters_dict_uneven_imbal_rdpo)
         else:
             filters_dicts=filters_dict_even_ipo.extend(filters_dict_even_imbal_rdpo)
+    else:
+        raise Exception('specify setting')
 
     # Initialize dictionaries to accumulate metrics data
     all_metrics_history = {metric: [] for metric in metrics_to_collect}
@@ -263,12 +266,16 @@ if __name__ == "__main__":
                 metrics_history[metric] =[]
                 continue
             metrics_history[metric] = process_runs(runs, field=metric, time_field='Iteration')
+                # list of dfs for each of the 20-seed runs for that metric for all iterations logged
 
-        # Accumulate metrics data for each configuration
-        for metric in metrics_to_collect:
+            print(f'METRIC {metric} -- HISTORY', metrics_history[metric])
+
+            # Accumulate metrics data for each configuration
             all_metrics_history[metric].append(metrics_history[metric])
             # all_metrics_history[metric] is a list of dataframes for processed runs
-            
+    
+    sys.exit()
+
     iteration_len=0
     iteration_index=0
     for runs in all_runs:
@@ -309,7 +316,7 @@ if __name__ == "__main__":
     for i, filters_dict in enumerate(filters_dicts):
         for metric in metrics_to_collect:
             values_matrix = all_metrics_history[metric][i]
-            #print('Val Matrix: ', values_matrix)
+            print('Val Matrix i: ', values_matrix[0], type(values_matrix[0]))
             #print('Type: ', type(values_matrix))
             avg_values = list(map(lambda x: np.mean(x, axis=0).ravel(), values_matrix))
             #print('Avg Values: ', avg_values)
