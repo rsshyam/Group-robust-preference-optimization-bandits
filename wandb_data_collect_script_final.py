@@ -152,16 +152,16 @@ if __name__ == "__main__":
     }
 
     # RDPO Filters
-    filters_dict_rdpo_even_imbalanced = {'group': group_rdpo_even_imbalanced, 'State': 'finished'}
-    filters_dict_dpo_even_imbalanced = {'group': group_dpo_even_imbalanced, 'State': 'finished'}
-    filters_dict_imp_even_imbalanced = {'group': group_imp_even_imbalanced, 'State': 'finished'}
+    filters_dict_rdpo_even_imbalanced = {'group': group_rdpo_even_imbalanced, 'State': 'finished', 'config.dpo_type': 'rdpo', 'config.importance_sampling': True, 'config.use_theory': False}
+    filters_dict_dpo_even_imbalanced = {'group': group_dpo_even_imbalanced, 'State': 'finished', 'config.dpo_type': 'rdpo', 'config.importance_sampling': True, 'config.use_theory': False}
+    filters_dict_imp_even_imbalanced = {'group': group_imp_even_imbalanced, 'State': 'finished', 'config.dpo_type': 'rdpo', 'config.importance_sampling': True, 'config.use_theory': False}
 
-    filters_dict_rdpo_uneven_balanced = {'group': group_rdpo_uneven_balanced, 'State': 'finished'}
-    filters_dict_dpo_uneven_balanced = {'group': group_dpo_uneven_balanced, 'State': 'finished'}
+    filters_dict_rdpo_uneven_balanced = {'group': group_rdpo_uneven_balanced, 'State': 'finished', 'config.dpo_type': 'rdpo', 'config.importance_sampling': True, 'config.use_theory': False}
+    filters_dict_dpo_uneven_balanced = {'group': group_dpo_uneven_balanced, 'State': 'finished', 'config.dpo_type': 'rdpo', 'config.importance_sampling': True, 'config.use_theory': False}
 
-    filters_dict_rdpo_uneven_imbalanced = {'group': group_rdpo_uneven_imbalanced, 'State': 'finished'}
-    filters_dict_dpo_uneven_imbalanced = {'group': group_dpo_uneven_imbalanced, 'State': 'finished'}
-    filters_dict_imp_uneven_imbalanced = {'group': group_imp_uneven_imbalanced, 'State': 'finished'}
+    filters_dict_rdpo_uneven_imbalanced = {'group': group_rdpo_uneven_imbalanced, 'State': 'finished', 'config.dpo_type': 'rdpo', 'config.importance_sampling': True, 'config.use_theory': False}
+    filters_dict_dpo_uneven_imbalanced = {'group': group_dpo_uneven_imbalanced, 'State': 'finished', 'config.dpo_type': 'rdpo', 'config.importance_sampling': True, 'config.use_theory': False}
+    filters_dict_imp_uneven_imbalanced = {'group': group_imp_uneven_imbalanced, 'State': 'finished', 'config.dpo_type': 'rdpo', 'config.importance_sampling': True, 'config.use_theory': False}
 
    
     # Assume you have the necessary functions and libraries imported
