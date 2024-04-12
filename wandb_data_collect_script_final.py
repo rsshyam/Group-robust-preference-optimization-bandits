@@ -856,7 +856,7 @@ if __name__ == "__main__":
         reward_errs_end_avg = [all_avg_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'reward_err_' in metric]
         reward_errs_end_sem = [all_sem_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'reward_err_' in metric]
         print(reward_errs_end_avg)
-        plt.bar(np.arange(len(reward_errs_end_avg))+i*0.25, height= reward_errs_end_avg,yerr= reward_errs_end_sem,width=0.2,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
+        plt.bar(np.arange(len(reward_errs_end_avg))+i*0.25, height=[i.item() for i in reward_errs_end_avg],yerr=[i.item() for i in reward_errs_end_sem],width=0.2,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
 
         plt.xticks(np.arange(len(reward_errs_end_avg))+i*0.25, [f"Group {i+1}_ratio_{weights_array[i]}" for i in range(len(reward_errs_end_avg))])
     plt.title('Reward Errors at the End')
@@ -884,7 +884,7 @@ if __name__ == "__main__":
         group_loss_end_avg = [all_avg_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'train_group_loss' in metric]
         group_loss_end_sem = [all_sem_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'train_group_loss' in metric]
         print(group_loss_end_avg)
-        plt.bar(np.arange(len(group_loss_end_avg))+i*0.125, height= group_loss_end_avg,yerr= group_loss_end_sem,width=0.1,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num))
+        plt.bar(np.arange(len(group_loss_end_avg))+i*0.125, height=[i.item() for i in group_loss_end_avg],yerr=[i.item() for i in group_loss_end_sem],width=0.1,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num))
 
         plt.xticks(np.arange(len(group_loss_end_avg))+i*0.125, [f"Group {i+1}_ratio_{weights_array[i]}" for i in range(len(group_loss_end_avg))])
     plt.title('Group Train Loss at the End')
@@ -912,7 +912,7 @@ if __name__ == "__main__":
         group_loss_end_avg = [all_avg_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'val_group_loss' in metric]
         group_loss_end_sem = [all_sem_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'val_group_loss' in metric]
         print(group_loss_end_avg)
-        plt.bar(np.arange(len(group_loss_end_avg))+i*0.125, height= group_loss_end_avg,yerr= group_loss_end_sem,width=0.1,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
+        plt.bar(np.arange(len(group_loss_end_avg))+i*0.125, height=[i.item() for i in group_loss_end_avg],yerr=[i.item() for i in group_loss_end_sem],width=0.1,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
 
         plt.xticks(np.arange(len(group_loss_end_avg))+i*0.125, [f"Group {i+1}_ratio_{weights_array[i]}" for i in range(len(group_loss_end_avg))])
     plt.title('Group Validation Loss at the End')
@@ -941,7 +941,7 @@ if __name__ == "__main__":
         max_reward_err_end_avg = [all_avg_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'max_reward_err' in metric]
         max_reward_err_end_sem = [all_sem_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'max_reward_err' in metric]
         print(max_reward_err_end_avg)
-        plt.bar(np.arange(len(max_reward_err_end_avg))+i*0.25, height= max_reward_err_end_avg,yerr= max_reward_err_end_sem,width=0.2,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
+        plt.bar(np.arange(len(max_reward_err_end_avg))+i*0.25, height=[i.item() for i in max_reward_err_end_avg],yerr=[i.item() for i in max_reward_err_end_sem],width=0.2,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
 
         #plt.xticks(np.arange(len(max_reward_err_end_avg))+i*0.25, [f"Group {i+1}" for i in range(len(max_reward_err_end_avg))])
     plt.title('Max Reward Error at the End')
@@ -969,7 +969,7 @@ if __name__ == "__main__":
         max_group_loss_end_avg = [all_avg_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'max_train_grp_loss' in metric]
         max_group_loss_end_sem = [all_sem_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'max_train_grp_loss' in metric]
         print(max_group_loss_end_avg)
-        plt.bar(np.arange(len(max_group_loss_end_avg))+i*0.125, height= max_group_loss_end_avg,yerr= max_group_loss_end_sem,width=0.1,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
+        plt.bar(np.arange(len(max_group_loss_end_avg))+i*0.125, height=[i.item() for i in max_group_loss_end_avg],yerr=[i.item() for i in max_group_loss_end_sem],width=0.1,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
 
         #plt.xticks(np.arange(len(group_loss_end_avg))+i*0.125, [f"Group {i+1}" for i in range(len(group_loss_end_avg))])
     plt.title('Max Group Train Loss at the End')
@@ -997,7 +997,7 @@ if __name__ == "__main__":
         max_group_loss_end_avg = [all_avg_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'max_val_grp_loss' in metric]
         max_group_loss_end_sem = [all_sem_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'max_val_grp_loss' in metric]
         print(max_group_loss_end_avg)
-        plt.bar(np.arange(len(max_group_loss_end_avg))+i*0.125, height= max_group_loss_end_avg,yerr= max_group_loss_end_sem,width=0.1,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
+        plt.bar(np.arange(len(max_group_loss_end_avg))+i*0.125, height=[i.item() for i in max_group_loss_end_avg],yerr=[i.item() for i in max_group_loss_end_sem],width=0.1,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
 
         #plt.xticks(np.arange(len(max_group_loss_end_avg))+i*0.125, [f"Group {i+1}" for i in range(len(group_loss_end_avg))])
     plt.title('Max Group Validation Loss at the End')
@@ -1025,7 +1025,7 @@ if __name__ == "__main__":
         max_kl_dist_end_avg = [all_avg_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'max_kl_dist' in metric]
         max_kl_dist_end_sem = [all_sem_metrics_at_iterations[metric][i][-1] for metric in metrics_to_collect if 'max_kl_dist' in metric]
         print(max_kl_dist_end_avg)
-        plt.bar(np.arange(len(max_kl_dist_end_avg))+i*0.125, height= max_kl_dist_end_avg,yerr= max_kl_dist_end_sem,width=0.1,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
+        plt.bar(np.arange(len(max_kl_dist_end_avg))+i*0.125, height=[i.item() for i in max_kl_dist_end_avg],yerr=[i.item() for i in max_kl_dist_end_sem],width=0.1,capsize=5,alpha=0.7,label=algo+ '_data_num_' + str(data_num) )
 
         #plt.xticks(np.arange(len(max_group_loss_end_avg))+i*0.125, [f"Group {i+1}" for i in range(len(group_loss_end_avg))])
     plt.title('Max KL distance at the End')
