@@ -19,22 +19,23 @@ import neatplot
 ENTITY = 'robust-rl-project'
 PROJECT = 'bandits_dpo'
 SETTINGS = {
-    'even_imbalanced_ipo': ['state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1'],
-    'uneven_balanced_ipo': ['state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1'],
-    'uneven_imbalanced_ipo': ['state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1'],
+    'even_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', None)],
+    'uneven_balanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1', None)],
+    'uneven_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', None)],
     'even_imbalanced_dpo': [
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc',
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_dpo',
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_imp',
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc', None),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_dpo', 'dpo'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_imp', 'imp'),
     ],
     'uneven_balanced_dpo': [
-        'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc',
-        'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo',
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc', None),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo', 'dpo'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo', 'imp'),
     ],
     'uneven_imbalanced_dpo': [
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc',
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_dpo',
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_imp',
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc', None),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_dpo', 'dpo'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_imp', 'imp'),
     ],
 }
 ALGORITHMS = {
@@ -50,13 +51,14 @@ def get_setting_details(setting_key: str):
     if 'all' in setting_key:
         pass
     group_list = SETTINGS[setting_key]
-    weights_array = np.array(group_list[0].split('weights[')[-1].split(']')[0].split(','), dtype=float)
-    pref_data_num = group_list[0].split('pref_data_num')[1].split('weights')[0]
+    weights_array = np.array(group_list[0][0].split('weights[')[-1].split(']')[0].split(','), dtype=float)
+    pref_data_num = group_list[0][0].split('pref_data_num')[1].split('weights')[0]
     return group_list, weights_array, pref_data_num
 
-def create_filter_dicts(groups: list[str], uneven: bool):
+def create_filter_dicts(groups: list[tuple[str, None|str]], uneven: bool):
     base_filter_ipo = {
         'config.ipo_grad_type': 'linear',
+        'config.reg_coef': 0.1,
         'config.dpo_type': 'rdpo',
         'State': 'finished',
         'config.lamba': 0,
@@ -68,23 +70,24 @@ def create_filter_dicts(groups: list[str], uneven: bool):
     }
 
     if len(groups)==1: # IPO
-        theory_filter = {**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': True, 'config.dpo_num_iters': 100}
-        avg_filter = {**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': True, 'config.dpo_num_iters': 100}
-        imp_samp_filter = {**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$nin': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
-        dpo_filter={**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$in': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
+        theory_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': True, 'config.dpo_num_iters': 100}
+        avg_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': False, 'config.dpo_num_iters': 100}
+        imp_samp_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$nin': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
+        dpo_filter={**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$in': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
         return [theory_filter, avg_filter, imp_samp_filter, dpo_filter]
 
     filters = []
     for group in groups:
         filter = {
             **base_filter_dpo, 
-            'group': group, 
+            'group': group[0], 
             'config.ipo_grad_type': 'justdpo',
-            'config.dpo_type': 'dpo' if 'dpo' in group else 'rdpo', 
-            'config.importance_sampling': 'imp' in group,
+            'config.dpo_type': 'dpo' if group[1]=='dpo' else 'rdpo', 
+            'config.importance_sampling': group[1]=='imp',
             'config.importance_sampling_weights': {'$nin': ['0.5,0.5']}, 
             'config.use_theory': False
         }
+        print('FILTERS: ', filter)
         filters.append(filter)
     return filters
 
@@ -94,10 +97,10 @@ def determine_algorithm(filters_dict):
             return 'RIPO Theory' if filters_dict['config.use_theory'] else 'RIPO Practice'
         if filters_dict['config.importance_sampling_weights'] == {'$in': ['0.5,0.5']}:
             return 'IPO'
-        return 'IPO Importance Sampling'
+        return 'IPO IS'
     
     if filters_dict['config.importance_sampling'] == True:
-        return 'DPO Importance Sampling'
+        return 'DPO IS'
     if filters_dict['config.dpo_type'] == 'dpo':
         return 'DPO'
     return 'RDPO'
@@ -128,17 +131,24 @@ def plot_metric_with_error_bands(iteration_index, metric_values, metric_sem, lab
         #color = colors[i] if colors else None
         plt.plot(iteration_index, avg, label=label)
         plt.fill_between(iteration_index, avg - sem, avg + sem, alpha=0.2)
+
+    plt.tick_params(axis='both', which='major', labelsize=20)
+    plt.tick_params(axis='both', which='minor', labelsize=20)
+
     plt.title(plot_title,fontsize=40)
-    plt.xlabel('Iterations',fontsize=40)
-    plt.ylabel('Value',fontsize=40)
-    plt.legend(fontsize=40)
-    neatplot.save_figure(f'{subfolder_path}/{file_name}')
+    plt.xlabel('Iterations',fontsize=35)
+    plt.ylabel('Value',fontsize=35)
+    plt.legend(fontsize=20)
+    neatplot.save_figure(f'{subfolder_path}/{file_name}', ext_list='pdf')
     plt.close()
 
 def plot_metric_bars(metric_config, filters_dicts, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations,weights_array):
     plt.figure(figsize=(12, 6))
+    legend_show = True
+    all_algos = []
     for i, filters_dict in enumerate(filters_dicts):
         algo = determine_algorithm(filters_dict)
+        all_algos.append(algo)
         data_num = pref_data_num
         metrics_end_avg = [all_avg_metrics_at_iterations[metric][i][-1] for metric in metric_config['metrics']]
         metrics_end_sem = [all_sem_metrics_at_iterations[metric][i][-1] for metric in metric_config['metrics']]
@@ -147,13 +157,22 @@ def plot_metric_bars(metric_config, filters_dicts, subfolder_path, all_avg_metri
         offset = i * bar_width
         positions = np.arange(len(metrics_end_avg)) + offset
         
-        plt.bar(positions, height=metrics_end_avg, yerr=metrics_end_sem, width=bar_width, capsize=5, alpha=0.7, label=f'{algo}_data_num_{data_num}')
-        plt.xticks(positions, [f"Group {i+1}_ratio_{weights_array[i]}" for i in range(len(metrics_end_avg))],fontsize=40)
+        plt.bar(positions, height=metrics_end_avg, yerr=metrics_end_sem, width=bar_width, capsize=5, alpha=0.7, label=f'{algo}')
+    
+    if 'Max' not in metric_config['title']:
+        plt.xticks(positions, [f"Group {i+1} Ratio {weights_array[i]}" for i in range(len(metrics_end_avg))])
+    else:
+        plt.xticks([i * bar_width for i in range(len(filters_dicts))], all_algos)
+        legend_show = False
+
+    plt.tick_params(axis='both', which='major', labelsize=20)
+    plt.tick_params(axis='both', which='minor', labelsize=20)
 
     plt.title(metric_config['title'],fontsize=40)
-    plt.ylabel('Value',fontsize=40)
-    plt.legend(fontsize=40)
-    neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}')
+    plt.ylabel('Value',fontsize=35)
+    if legend_show is True:
+        plt.legend(fontsize=20)
+    neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='pdf')
     plt.close()
 
 def main():
@@ -171,7 +190,7 @@ def main():
         # Download runs for the current filters_dict
         runs = download_runs(ENTITY, PROJECT, filters_dict)
         all_runs.append(runs)
-        print(len(runs))
+        #print(len(runs))
         metrics_history = {}
 
         for metric in metrics_to_collect:
@@ -191,7 +210,7 @@ def main():
     for runs in all_runs:
         for run in runs:
             iteration_index_1=run[['Iteration']].dropna().values.ravel()
-            print(iteration_index_1)
+            #print(iteration_index_1)
             if len(iteration_index_1)>iteration_len:
                 iteration_len=len(iteration_index_1)
                 iteration_index=iteration_index_1
@@ -199,7 +218,7 @@ def main():
 
     base_folder = f'wandb-plots-final-synthetic/{len(filters_dicts)}_setting_{setting}'
     os.makedirs(base_folder, exist_ok=True)
-    subfolder_name = f"{filters_dicts[0]['config.dpo_type']}{len(filters_dicts)}"
+    subfolder_name = f"{filters_dicts[0]['config.dpo_type']}{len(filters_dicts)}_v2"
     subfolder_path = os.path.join(base_folder, subfolder_name)
     os.makedirs(subfolder_path, exist_ok=True)
 
@@ -276,16 +295,16 @@ def main():
     for metrics in plot_configs:
         values, sems, labels = prepare_metric_data(filters_dicts, metrics,all_avg_metrics_at_iterations,all_sem_metrics_at_iterations,metrics_titles)
         metric_name = "_".join(metrics)
-        plot_metric_with_error_bands(iteration_index, values, sems, labels, f'{metric_name} over Iterations', subfolder_path, f"{titles_dict[metric_name]}", metric, extend=True)
+        plot_metric_with_error_bands(iteration_index, values, sems, labels, f'{titles_dict[metric_name]}', subfolder_path, f"{metric_name}", metric, extend=True)
     # Define a list of metric configurations for each plot
     metrics_configs = [
-        {'metrics': [metric for metric in metrics_to_collect if 'reward_err_' in metric], 'title': 'Reward Errors at the End', 'file_suffix': 'reward_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'train_group_loss' in metric], 'title': 'Group Train Loss at the End', 'file_suffix': 'train_group_loss_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'val_group_loss' in metric], 'title': 'Group Validation Loss at the End', 'file_suffix': 'val_group_loss_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'max_reward_err' in metric], 'title': 'Max Reward Error at the End', 'file_suffix': 'max_reward_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'max_train_grp_loss' in metric], 'title': 'Max Group Train Loss at the End', 'file_suffix': 'max_train_group_loss_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'max_val_grp_loss' in metric], 'title': 'Max Group Validation Loss at the End', 'file_suffix': 'max_val_group_loss_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'max_kl_dist' in metric], 'title': 'Max KL Distance at the End', 'file_suffix': 'max_kl_distance_bars'}
+        {'metrics': [metric for metric in metrics_to_collect if 'reward_err_' in metric], 'title': 'Reward Errors at Convergence', 'file_suffix': 'reward_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'train_group_loss' in metric], 'title': 'Group Train Loss at Convergence', 'file_suffix': 'train_group_loss_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'val_group_loss' in metric], 'title': 'Group Validation Loss at Convergence', 'file_suffix': 'val_group_loss_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'max_reward_err' in metric], 'title': 'Max Reward Error at Convergence', 'file_suffix': 'max_reward_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'max_train_grp_loss' in metric], 'title': 'Max Group Train Loss at Convergence', 'file_suffix': 'max_train_group_loss_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'max_val_grp_loss' in metric], 'title': 'Max Group Validation Loss at Convergence', 'file_suffix': 'max_val_group_loss_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'max_kl_dist' in metric], 'title': 'Max KL Distance at Convergence', 'file_suffix': 'max_kl_distance_bars'}
     ]
 
     # Loop through each configuration and plot
