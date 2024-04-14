@@ -19,23 +19,22 @@ import neatplot
 ENTITY = 'robust-rl-project'
 PROJECT = 'bandits_dpo'
 SETTINGS = {
-    'even_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', None)],
-    'uneven_balanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1', None)],
-    'uneven_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', None)],
+    'even_imbalanced_ipo': ['state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1'],
+    'uneven_balanced_ipo': ['state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1'],
+    'uneven_imbalanced_ipo': ['state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1'],
     'even_imbalanced_dpo': [
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc', None),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_dpo', 'dpo'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_imp', 'imp'),
+        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc',
+        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_dpo',
+        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_imp',
     ],
     'uneven_balanced_dpo': [
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc', None),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo', 'dpo'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo', 'imp'),
+        'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc',
+        'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo',
     ],
     'uneven_imbalanced_dpo': [
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc', None),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_dpo', 'dpo'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_imp', 'imp'),
+        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc',
+        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_dpo',
+        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_imp',
     ],
 }
 ALGORITHMS = {
@@ -51,8 +50,8 @@ def get_setting_details(setting_key: str):
     if 'all' in setting_key:
         pass
     group_list = SETTINGS[setting_key]
-    weights_array = np.array(group_list[0][0].split('weights[')[-1].split(']')[0].split(','), dtype=float)
-    pref_data_num = group_list[0][0].split('pref_data_num')[1].split('weights')[0]
+    weights_array = np.array(group_list[0].split('weights[')[-1].split(']')[0].split(','), dtype=float)
+    pref_data_num = group_list[0].split('pref_data_num')[1].split('weights')[0]
     return group_list, weights_array, pref_data_num
 
 def create_filter_dicts(groups: list[tuple[str, None|str]], uneven: bool):
@@ -70,24 +69,26 @@ def create_filter_dicts(groups: list[tuple[str, None|str]], uneven: bool):
     }
 
     if len(groups)==1: # IPO
-        theory_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': True, 'config.dpo_num_iters': 100}
-        avg_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': False, 'config.dpo_num_iters': 100}
-        imp_samp_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$nin': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
-        dpo_filter={**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$in': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
+        theory_filter = {**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': True, 'config.dpo_num_iters': 100}
+        avg_filter = {**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': False, 'config.dpo_num_iters': 100}
+        imp_samp_filter = {**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$nin': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
+        dpo_filter={**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$in': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
         return [theory_filter, avg_filter, imp_samp_filter, dpo_filter]
 
     filters = []
+    #group_names = []
     for group in groups:
         filter = {
             **base_filter_dpo, 
-            'group': group[0], 
+            'group': group, 
             'config.ipo_grad_type': 'justdpo',
-            'config.dpo_type': 'dpo' if group[1]=='dpo' else 'rdpo', 
-            'config.importance_sampling': group[1]=='imp',
+            'config.dpo_type': 'dpo' if 'dpo' in group else 'rdpo', 
+            'config.importance_sampling': 'imp' in group,
             'config.importance_sampling_weights': {'$nin': ['0.5,0.5']}, 
             'config.use_theory': False
         }
-        print('FILTERS: ', filter)
+        #group_names.append(group[1])
+        #print('FILTERS: ', filter)
         filters.append(filter)
     return filters
 
@@ -105,12 +106,14 @@ def determine_algorithm(filters_dict):
         return 'DPO'
     return 'RDPO'
 
-def prepare_metric_data(filters_dicts, metrics,all_avg_metrics_at_iterations,all_sem_metrics_at_iterations,metric_titles):
+def prepare_metric_data(filters_dicts,metrics,all_avg_metrics_at_iterations,all_sem_metrics_at_iterations,metric_titles):
     metric_values = []
     metric_sem = []
     labels = []
     for metric_name in metrics:
         for i,filters_dict in enumerate(filters_dicts):
+            #if group_names is not None:
+            #    algo = group_names[i]
             algo = determine_algorithm(filters_dict)
             data_num = pref_data_num  # assuming this is predefined somewhere
             avg = all_avg_metrics_at_iterations[metric_name][i]
@@ -147,6 +150,8 @@ def plot_metric_bars(metric_config, filters_dicts, subfolder_path, all_avg_metri
     legend_show = True
     all_algos = []
     for i, filters_dict in enumerate(filters_dicts):
+        #if group_names is not None:
+        #    algo = group_names[i]
         algo = determine_algorithm(filters_dict)
         all_algos.append(algo)
         data_num = pref_data_num
@@ -227,12 +232,24 @@ def main():
 
     for i, filters_dict in enumerate(filters_dicts):
         for metric in metrics_to_collect:
+            #print('FILTER DICT: ', filters_dict)
+            #print('METRIC: ', metric)
+
             values_matrix = all_metrics_history[metric][i]
+            #for j in range(len(values_matrix)):
+            #    print(f'VALUES MATRIX i = {j}: ', values_matrix[j])
+            #    input()
+
+            for j in range(len(values_matrix)):
+                values_matrix[j].dropna(inplace=True)
+
             #print('VAL MATRIX: ', values_matrix[0:2])
             avg_values = np.mean(values_matrix, axis=0)
             sem_values = sem(all_metrics_history[metric][i], axis=0)
             all_avg_metrics_at_iterations[metric].append(avg_values.ravel())
             all_sem_metrics_at_iterations[metric].append(sem_values.ravel())
+
+            #input()
 
     #Plotting configurations
     plot_configs = [
@@ -293,8 +310,14 @@ def main():
 
 
     for metrics in plot_configs:
-        values, sems, labels = prepare_metric_data(filters_dicts, metrics,all_avg_metrics_at_iterations,all_sem_metrics_at_iterations,metrics_titles)
+        values, sems, labels = prepare_metric_data(filters_dicts, metrics, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations, metrics_titles)
         metric_name = "_".join(metrics)
+        
+        #print(f'AVG max_rew_err at iter: ', all_avg_metrics_at_iterations['max_reward_err'])
+        #print('\n')
+        #print(f'VALUES at iter: ', values)
+        #print('\n\n')
+        
         plot_metric_with_error_bands(iteration_index, values, sems, labels, f'{titles_dict[metric_name]}', subfolder_path, f"{metric_name}", metric, extend=True)
     # Define a list of metric configurations for each plot
     metrics_configs = [
@@ -309,7 +332,7 @@ def main():
 
     # Loop through each configuration and plot
     for config in metrics_configs:
-        plot_metric_bars(config, filters_dicts, subfolder_path,all_avg_metrics_at_iterations,all_sem_metrics_at_iterations,weights_array)
+        plot_metric_bars(config, filters_dicts, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations, weights_array)
 
 if __name__ == "__main__":
     main()
