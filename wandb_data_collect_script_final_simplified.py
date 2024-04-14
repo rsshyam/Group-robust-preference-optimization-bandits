@@ -19,22 +19,23 @@ import neatplot
 ENTITY = 'robust-rl-project'
 PROJECT = 'bandits_dpo'
 SETTINGS = {
-    'even_imbalanced_ipo': ['state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1'],
-    'uneven_balanced_ipo': ['state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1'],
-    'uneven_imbalanced_ipo': ['state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1'],
+    'even_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', 'IPO_ALL')],
+    'uneven_balanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1', 'IPO_ALL')],
+    'uneven_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', 'IPO_ALL')],
     'even_imbalanced_dpo': [
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc',
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_dpo',
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_imp',
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_dpo', 'DPO'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_imp', 'DPO IS'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc', 'RDPO'),
     ],
     'uneven_balanced_dpo': [
-        'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc',
-        'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo',
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo', 'DPO'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo', 'DPO IS'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc', 'RDPO'),
     ],
     'uneven_imbalanced_dpo': [
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc',
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_dpo',
-        'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_imp',
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_dpo', 'DPO'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_imp', 'DPO IS'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc', 'RDPO'),
     ],
 }
 ALGORITHMS = {
@@ -48,10 +49,16 @@ pref_data_num=300
 
 def get_setting_details(setting_key: str):
     if 'all' in setting_key:
-        pass
-    group_list = SETTINGS[setting_key]
-    weights_array = np.array(group_list[0].split('weights[')[-1].split(']')[0].split(','), dtype=float)
-    pref_data_num = group_list[0].split('pref_data_num')[1].split('weights')[0]
+        assert(setting_key[-3:]=='all'), 'Wrong setting_key convention.'
+        dpo_key = setting_key[:-3] + 'dpo'
+        ipo_key = setting_key[:-3] + 'ipo'
+        group_list = SETTINGS[ipo_key]
+        group_list_2 = SETTINGS[dpo_key]
+        group_list.extend(group_list_2)
+    else:
+        group_list = SETTINGS[setting_key]
+    weights_array = np.array(group_list[0][0].split('weights[')[-1].split(']')[0].split(','), dtype=float)
+    pref_data_num = group_list[0][0].split('pref_data_num')[1].split('weights')[0]
     return group_list, weights_array, pref_data_num
 
 def create_filter_dicts(groups: list[tuple[str, None|str]], uneven: bool):
@@ -68,29 +75,33 @@ def create_filter_dicts(groups: list[tuple[str, None|str]], uneven: bool):
         'config.use_uneven_grp': uneven
     }
 
-    if len(groups)==1: # IPO
-        theory_filter = {**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': True, 'config.dpo_num_iters': 100}
-        avg_filter = {**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': False, 'config.dpo_num_iters': 100}
-        imp_samp_filter = {**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$nin': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
-        dpo_filter={**base_filter_ipo, 'group': groups[0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$in': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
-        return [theory_filter, avg_filter, imp_samp_filter, dpo_filter]
-
     filters = []
-    #group_names = []
+    group_names = []
     for group in groups:
+        if group[1]=='IPO_ALL':
+            dpo_filter={**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$in': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
+            imp_samp_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$nin': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
+            theory_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': True, 'config.dpo_num_iters': 100}
+            avg_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': False, 'config.dpo_num_iters': 100}
+            filters.extend([dpo_filter, imp_samp_filter, theory_filter, avg_filter])
+            group_names.extend(['IPO', 'IPO IS', 'RIPO Theory', 'RIPO Practice'])
+            continue
+
         filter = {
             **base_filter_dpo, 
-            'group': group, 
+            'group': group[0], 
             'config.ipo_grad_type': 'justdpo',
-            'config.dpo_type': 'dpo' if 'dpo' in group else 'rdpo', 
-            'config.importance_sampling': 'imp' in group,
+            'config.dpo_type': 'dpo' if 'dpo' in group[0] else 'rdpo', 
+            'config.importance_sampling': 'imp' in group[0],
             'config.importance_sampling_weights': {'$nin': ['0.5,0.5']}, 
             'config.use_theory': False
         }
-        #group_names.append(group[1])
-        #print('FILTERS: ', filter)
+        group_names.append(group[1])
+        #print(f'FILTERS: {filter}\n')
         filters.append(filter)
-    return filters
+
+    print("FILTERS: ", filters, group_names)
+    return filters, group_names
 
 def determine_algorithm(filters_dict):
     if filters_dict['config.ipo_grad_type'] == 'linear': # IPO
@@ -106,15 +117,16 @@ def determine_algorithm(filters_dict):
         return 'DPO'
     return 'RDPO'
 
-def prepare_metric_data(filters_dicts,metrics,all_avg_metrics_at_iterations,all_sem_metrics_at_iterations,metric_titles):
+def prepare_metric_data(filters_dicts,group_names,metrics,all_avg_metrics_at_iterations,all_sem_metrics_at_iterations,metric_titles):
     metric_values = []
     metric_sem = []
     labels = []
     for metric_name in metrics:
         for i,filters_dict in enumerate(filters_dicts):
-            #if group_names is not None:
-            #    algo = group_names[i]
-            algo = determine_algorithm(filters_dict)
+            if group_names is not None:
+                algo = group_names[i]
+            else:
+                algo = determine_algorithm(filters_dict)
             data_num = pref_data_num  # assuming this is predefined somewhere
             avg = all_avg_metrics_at_iterations[metric_name][i]
             sem = all_sem_metrics_at_iterations[metric_name][i]
@@ -138,21 +150,23 @@ def plot_metric_with_error_bands(iteration_index, metric_values, metric_sem, lab
     plt.tick_params(axis='both', which='major', labelsize=20)
     plt.tick_params(axis='both', which='minor', labelsize=20)
 
-    plt.title(plot_title,fontsize=40)
-    plt.xlabel('Iterations',fontsize=35)
-    plt.ylabel('Value',fontsize=35)
+    plt.title(plot_title,fontsize=35)
+    plt.xlabel('Iterations',fontsize=25)
+    plt.ylabel('Value',fontsize=25)
     plt.legend(fontsize=20)
     neatplot.save_figure(f'{subfolder_path}/{file_name}', ext_list='pdf')
     plt.close()
 
-def plot_metric_bars(metric_config, filters_dicts, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations,weights_array):
+def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations,weights_array):
     plt.figure(figsize=(12, 6))
     legend_show = True
     all_algos = []
     for i, filters_dict in enumerate(filters_dicts):
-        #if group_names is not None:
-        #    algo = group_names[i]
-        algo = determine_algorithm(filters_dict)
+        if group_names is not None:
+            algo = group_names[i]
+        else:
+            algo = determine_algorithm(filters_dict)
+
         all_algos.append(algo)
         data_num = pref_data_num
         metrics_end_avg = [all_avg_metrics_at_iterations[metric][i][-1] for metric in metric_config['metrics']]
@@ -162,29 +176,30 @@ def plot_metric_bars(metric_config, filters_dicts, subfolder_path, all_avg_metri
         offset = i * bar_width
         positions = np.arange(len(metrics_end_avg)) + offset
         
-        plt.bar(positions, height=metrics_end_avg, yerr=metrics_end_sem, width=bar_width, capsize=5, alpha=0.7, label=f'{algo}')
+        plt.barh(positions, width=metrics_end_avg, xerr=metrics_end_sem, height=bar_width, capsize=5, alpha=0.7, label=f'{algo}')
+        plt.gca().invert_yaxis()
     
     if 'Max' not in metric_config['title']:
-        plt.xticks(positions, [f"Group {i+1} Ratio {weights_array[i]}" for i in range(len(metrics_end_avg))])
+        plt.yticks(positions, [f"Group {i+1} Ratio {weights_array[i]}" for i in range(len(metrics_end_avg))])
     else:
-        plt.xticks([i * bar_width for i in range(len(filters_dicts))], all_algos)
+        plt.yticks([i * bar_width for i in range(len(filters_dicts))], all_algos)
         legend_show = False
 
     plt.tick_params(axis='both', which='major', labelsize=20)
     plt.tick_params(axis='both', which='minor', labelsize=20)
 
-    plt.title(metric_config['title'],fontsize=40)
-    plt.ylabel('Value',fontsize=35)
+    plt.title(metric_config['title'],fontsize=35)
+    plt.xlabel('Value',fontsize=25)
     if legend_show is True:
         plt.legend(fontsize=20)
     neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='pdf')
     plt.close()
 
 def main():
-    setting = 'uneven_balanced_dpo'  # convention X_Y_Z: X={'even','uneven'}, Y={'balanced','imbalanced'}, Z={'dpo','ipo','all'}
+    setting = 'even_imbalanced_all'  # convention X_Y_Z: X={'even','uneven'}, Y={'balanced','imbalanced'}, Z={'dpo','ipo','all'}
     
     groups, weights_array, pref_data_num = get_setting_details(setting)
-    filters_dicts = create_filter_dicts(groups, 'uneven' in setting)
+    filters_dicts, group_names = create_filter_dicts(groups, 'uneven' in setting)
     
     metrics_to_collect = ['grad_norm', 'train_loss', 'reward_err_1', 'reward_err_2', 'reward_param_1', 'reward_param_2', 'reward_param_3', 'reward_param_4','group_weight_1','group_weight_2','val_loss','train_group_loss_1','train_group_loss_2','val_group_loss_1','val_group_loss_2','hist_group_loss_1','hist_group_loss_2','max_val_grp_loss','max_train_grp_loss','max_reward_err','max_kl_dist']
     all_metrics_history = {metric: [] for metric in metrics_to_collect}
@@ -232,24 +247,18 @@ def main():
 
     for i, filters_dict in enumerate(filters_dicts):
         for metric in metrics_to_collect:
-            #print('FILTER DICT: ', filters_dict)
-            #print('METRIC: ', metric)
-
             values_matrix = all_metrics_history[metric][i]
-            #for j in range(len(values_matrix)):
-            #    print(f'VALUES MATRIX i = {j}: ', values_matrix[j])
-            #    input()
-
             for j in range(len(values_matrix)):
                 values_matrix[j].dropna(inplace=True)
 
-            #print('VAL MATRIX: ', values_matrix[0:2])
-            avg_values = np.mean(values_matrix, axis=0)
-            sem_values = sem(all_metrics_history[metric][i], axis=0)
+            if len(values_matrix) == 0: # group_weight in DPO group is empty
+                avg_values = np.float64(np.nan)
+                sem_values = np.float64(np.nan)
+            else:
+                avg_values = np.mean(values_matrix, axis=0)
+                sem_values = sem(all_metrics_history[metric][i], axis=0)
             all_avg_metrics_at_iterations[metric].append(avg_values.ravel())
             all_sem_metrics_at_iterations[metric].append(sem_values.ravel())
-
-            #input()
 
     #Plotting configurations
     plot_configs = [
@@ -307,10 +316,8 @@ def main():
         'max_kl_dist': 'Maximum KL Distance'
     }
 
-
-
     for metrics in plot_configs:
-        values, sems, labels = prepare_metric_data(filters_dicts, metrics, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations, metrics_titles)
+        values, sems, labels = prepare_metric_data(filters_dicts, group_names, metrics, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations, metrics_titles)
         metric_name = "_".join(metrics)
         
         #print(f'AVG max_rew_err at iter: ', all_avg_metrics_at_iterations['max_reward_err'])
@@ -319,6 +326,7 @@ def main():
         #print('\n\n')
         
         plot_metric_with_error_bands(iteration_index, values, sems, labels, f'{titles_dict[metric_name]}', subfolder_path, f"{metric_name}", metric, extend=True)
+    
     # Define a list of metric configurations for each plot
     metrics_configs = [
         {'metrics': [metric for metric in metrics_to_collect if 'reward_err_' in metric], 'title': 'Reward Errors at Convergence', 'file_suffix': 'reward_bars'},
@@ -332,7 +340,7 @@ def main():
 
     # Loop through each configuration and plot
     for config in metrics_configs:
-        plot_metric_bars(config, filters_dicts, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations, weights_array)
+        plot_metric_bars(config, filters_dicts, group_names, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations, weights_array)
 
 if __name__ == "__main__":
     main()
