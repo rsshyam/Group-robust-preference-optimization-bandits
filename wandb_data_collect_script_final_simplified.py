@@ -191,7 +191,7 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
     if 'Max' not in metric_config['title']:
         plt.xticks(positions, [f"Group {i+1} Ratio {weights_array[i]}" for i in range(len(metrics_end_avg))])
     else:
-        plt.xticks([i * bar_width for i in range(len(filters_dicts))], all_algos, fontsize=40)
+        plt.xticks([i * bar_width for i in range(len(filters_dicts))], all_algos, rotation=30)
         legend_show = False
 
     plt.tick_params(axis='both', which='major', labelsize=35)
