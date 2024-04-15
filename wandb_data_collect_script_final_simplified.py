@@ -11,7 +11,7 @@ from visualisations_utils_wandb_api import (
 
 import os
 import neatplot
-#neatplot.set_style()
+neatplot.set_style()
 
 # Constants and configurations
 ENTITY = 'robust-rl-project'
@@ -183,10 +183,9 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
         
         bar_width = 0.1 if 'group_loss' in metric_config['metrics'][0] else 0.2
         offset = i * bar_width
-        gap_offset = bar_width / 10
-        positions = np.arange(len(metrics_end_avg)) + offset + gap_offset
+        positions = np.arange(len(metrics_end_avg)) + offset
         
-        plt.bar(positions, height=metrics_end_avg, yerr=metrics_end_sem, width=bar_width, capsize=5, alpha=0.7, label=f'{algo}')
+        plt.bar(positions, height=metrics_end_avg, yerr=metrics_end_sem, width=bar_width*0.95, capsize=5, alpha=0.7, label=f'{algo}')
         #plt.gca().invert_yaxis()
     
     if 'Max' not in metric_config['title']:

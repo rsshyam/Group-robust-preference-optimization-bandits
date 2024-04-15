@@ -12,7 +12,8 @@ log*/
 wandb_runs/
 wandb-plots-final/
 wandb-plots-final-synthetic/
-.png
+bandit-dpo-plots-final/
+*.png
 
 # Distribution / packaging
 .idea
