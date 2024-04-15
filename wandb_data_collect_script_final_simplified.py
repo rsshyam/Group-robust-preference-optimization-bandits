@@ -198,7 +198,7 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
     plt.tick_params(axis='both', which='minor', labelsize=35)
 
     plt.title(metric_config['title'],fontsize=55)
-    plt.ylabel('Value',fontsize=50)
+    plt.ylabel('Value',fontsize=45)
     if legend_show is True:
         plt.legend(fontsize=35)
     neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='png')
