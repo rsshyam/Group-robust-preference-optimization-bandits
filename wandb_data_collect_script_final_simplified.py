@@ -191,13 +191,13 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
         plt.yticks([i * bar_width for i in range(len(filters_dicts))], all_algos)
         legend_show = False
 
-    plt.tick_params(axis='both', which='major', labelsize=20)
-    plt.tick_params(axis='both', which='minor', labelsize=20)
+    plt.tick_params(axis='both', which='major', labelsize=25)
+    plt.tick_params(axis='both', which='minor', labelsize=25)
 
-    plt.title(metric_config['title'],fontsize=35)
-    plt.xlabel('Value',fontsize=25)
+    plt.title(metric_config['title'],fontsize=45)
+    plt.xlabel('Value',fontsize=35)
     if legend_show is True:
-        plt.legend(fontsize=20)
+        plt.legend(fontsize=25)
     neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='pdf')
     plt.close()
 
