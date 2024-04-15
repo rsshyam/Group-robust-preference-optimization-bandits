@@ -11,29 +11,28 @@ from visualisations_utils_wandb_api import (
 
 import os
 import neatplot
-neatplot.set_style()
+#neatplot.set_style()
 
 # Constants and configurations
 ENTITY = 'robust-rl-project'
 PROJECT = 'bandits_dpo'
 SETTINGS = {
-    'even_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', 'IPO_ALL')],
-    'uneven_balanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1', 'IPO_ALL')],
-    'uneven_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', 'IPO_ALL')],
+    'even_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', 'even_imbalanced_ipo')],
+    'uneven_balanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1', 'uneven_balanced_ipo')],
+    'uneven_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', 'uneven_imbalanced_ipo')],
     'even_imbalanced_dpo': [
         ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_dpo', 'DPO'),
         ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_imp', 'DPO IS'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc', 'RDPO'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc', 'rGDPO'),
     ],
     'uneven_balanced_dpo': [
         ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo', 'DPO'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo', 'DPO IS'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc', 'RDPO'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc', 'rGDPO'),
     ],
     'uneven_imbalanced_dpo': [
         ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_dpo', 'DPO'),
         ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_imp', 'DPO IS'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc', 'RDPO'),
+        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc', 'rGDPO'),
     ],
 }
 ALGORITHMS = {
@@ -82,13 +81,17 @@ def create_filter_dicts(groups: list[tuple[str, str]], uneven: bool):
     filters = []
     group_names = []
     for group in groups:
-        if group[1]=='IPO_ALL':
+        if 'ipo' in group[1]:
             dpo_filter={**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$in': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
             imp_samp_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': True, 'config.importance_sampling_weights': {'$nin': ['0.5,0.5']} , 'config.dpo_num_iters': 10}
             theory_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': True, 'config.dpo_num_iters': 100}
-            avg_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': False, 'config.dpo_num_iters': 100}
-            filters.extend([dpo_filter, imp_samp_filter, theory_filter, avg_filter])
-            group_names.extend(['IPO', 'IPO IS', 'RIPO Theory', 'RIPO Practice'])
+            #avg_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': False, 'config.dpo_num_iters': 100}
+            if 'uneven_balanced' in group[1]:
+                filters.extend([dpo_filter, theory_filter])
+                group_names.extend(['IPO', 'rGIPO'])
+            else:
+                filters.extend([dpo_filter, imp_samp_filter, theory_filter])
+                group_names.extend(['IPO', 'IPO IS', 'rGIPO'])
             continue
 
         filter = {
@@ -110,7 +113,7 @@ def create_filter_dicts(groups: list[tuple[str, str]], uneven: bool):
 def determine_algorithm(filters_dict):
     if filters_dict['config.ipo_grad_type'] == 'linear': # IPO
         if not filters_dict['config.importance_sampling']:
-            return 'RIPO Theory' if filters_dict['config.use_theory'] else 'RIPO Practice'
+            return 'rGIPO'
         if filters_dict['config.importance_sampling_weights'] == {'$in': ['0.5,0.5']}:
             return 'IPO'
         return 'IPO IS'
@@ -119,7 +122,7 @@ def determine_algorithm(filters_dict):
         return 'DPO IS'
     if filters_dict['config.dpo_type'] == 'dpo':
         return 'DPO'
-    return 'RDPO'
+    return 'rGDPO'
 
 def prepare_metric_data(filters_dicts,group_names,metrics,all_avg_metrics_at_iterations,all_sem_metrics_at_iterations,metric_titles):
     metric_values = []
@@ -160,7 +163,7 @@ def plot_metric_with_error_bands(iteration_index, metric_values, metric_sem, lab
     plt.xlabel('Iterations',fontsize=35)
     plt.ylabel('Value',fontsize=35)
     plt.legend(fontsize=25, loc='center right')
-    neatplot.save_figure(f'{subfolder_path}/{file_name}', ext_list='pdf')
+    neatplot.save_figure(f'{subfolder_path}/{file_name}', ext_list='png')
     plt.close()
 
 def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations,weights_array):
@@ -180,25 +183,26 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
         
         bar_width = 0.1 if 'group_loss' in metric_config['metrics'][0] else 0.2
         offset = i * bar_width
-        positions = np.arange(len(metrics_end_avg)) + offset
+        gap_offset = bar_width / 10
+        positions = np.arange(len(metrics_end_avg)) + offset + gap_offset
         
-        plt.barh(positions, width=metrics_end_avg, xerr=metrics_end_sem, height=bar_width, capsize=5, alpha=0.7, label=f'{algo}')
-        plt.gca().invert_yaxis()
+        plt.bar(positions, height=metrics_end_avg, yerr=metrics_end_sem, width=bar_width, capsize=5, alpha=0.7, label=f'{algo}')
+        #plt.gca().invert_yaxis()
     
     if 'Max' not in metric_config['title']:
-        plt.yticks(positions, [f"Group {i+1} Ratio {weights_array[i]}" for i in range(len(metrics_end_avg))])
+        plt.xticks(positions, [f"Group {i+1} Ratio {weights_array[i]}" for i in range(len(metrics_end_avg))])
     else:
-        plt.yticks([i * bar_width for i in range(len(filters_dicts))], all_algos)
+        plt.xticks([i * bar_width for i in range(len(filters_dicts))], all_algos)
         legend_show = False
 
     plt.tick_params(axis='both', which='major', labelsize=25)
     plt.tick_params(axis='both', which='minor', labelsize=25)
 
     plt.title(metric_config['title'],fontsize=45)
-    plt.xlabel('Value',fontsize=35)
+    plt.ylabel('Value',fontsize=35)
     if legend_show is True:
         plt.legend(fontsize=25)
-    neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='pdf')
+    neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='png')
     plt.close()
 
 def main(args):
@@ -242,7 +246,7 @@ def main(args):
                 iteration_index=iteration_index_1
 
 
-    base_folder = 'wandb-plots-final-synthetic/notex_plots/'
+    base_folder = 'bandit-dpo-plots-final'
     os.makedirs(base_folder, exist_ok=True)
     subfolder_name = f"{len(filters_dicts)}_setting_{setting}" #f"{filters_dicts[0]['config.dpo_type']}{len(filters_dicts)}_v2"
     subfolder_path = os.path.join(base_folder, subfolder_name)
