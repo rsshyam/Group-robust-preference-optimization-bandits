@@ -11,7 +11,7 @@ from visualisations_utils_wandb_api import (
 
 import os
 import neatplot
-#neatplot.set_style('notex')
+neatplot.set_style()
 
 # Constants and configurations
 ENTITY = 'robust-rl-project'
@@ -65,7 +65,7 @@ def get_setting_details(setting_key: str):
     pref_data_num = group_list[0][0].split('pref_data_num')[1].split('weights')[0]
     return group_list, weights_array, pref_data_num
 
-def create_filter_dicts(groups: list[tuple[str, None|str]], uneven: bool):
+def create_filter_dicts(groups: list[tuple[str, str]], uneven: bool):
     base_filter_ipo = {
         'config.ipo_grad_type': 'linear',
         'config.reg_coef': 0.1,
@@ -151,15 +151,15 @@ def plot_metric_with_error_bands(iteration_index, metric_values, metric_sem, lab
         plt.plot(iteration_index, avg, label=label)
         plt.fill_between(iteration_index, avg - sem, avg + sem, alpha=0.2)
 
-    plt.grid(visible=True, linewidth=0.75)
+    plt.grid(visible=True, linewidth=1)
 
-    plt.tick_params(axis='both', which='major', labelsize=20)
-    plt.tick_params(axis='both', which='minor', labelsize=20)
+    plt.tick_params(axis='both', which='major', labelsize=25)
+    plt.tick_params(axis='both', which='minor', labelsize=25)
 
-    plt.title(plot_title,fontsize=35)
-    plt.xlabel('Iterations',fontsize=25)
-    plt.ylabel('Value',fontsize=25)
-    plt.legend(fontsize=20)
+    plt.title(plot_title,fontsize=45)
+    plt.xlabel('Iterations',fontsize=35)
+    plt.ylabel('Value',fontsize=35)
+    plt.legend(fontsize=25, loc='center right')
     neatplot.save_figure(f'{subfolder_path}/{file_name}', ext_list='pdf')
     plt.close()
 
