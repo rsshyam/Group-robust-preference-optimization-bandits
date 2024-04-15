@@ -156,13 +156,13 @@ def plot_metric_with_error_bands(iteration_index, metric_values, metric_sem, lab
 
     plt.grid(visible=True, linewidth=1)
 
-    plt.tick_params(axis='both', which='major', labelsize=25)
-    plt.tick_params(axis='both', which='minor', labelsize=25)
+    plt.tick_params(axis='both', which='major', labelsize=35)
+    plt.tick_params(axis='both', which='minor', labelsize=35)
 
-    plt.title(plot_title,fontsize=45)
-    plt.xlabel('Iterations',fontsize=35)
-    plt.ylabel('Value',fontsize=35)
-    plt.legend(fontsize=25, loc='center right')
+    plt.title(plot_title,fontsize=55)
+    plt.xlabel('Iterations',fontsize=50)
+    plt.ylabel('Value',fontsize=50)
+    plt.legend(fontsize=35, loc='center right')
     neatplot.save_figure(f'{subfolder_path}/{file_name}', ext_list='png')
     plt.close()
 
@@ -194,13 +194,13 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
         plt.xticks([i * bar_width for i in range(len(filters_dicts))], all_algos)
         legend_show = False
 
-    plt.tick_params(axis='both', which='major', labelsize=25)
-    plt.tick_params(axis='both', which='minor', labelsize=25)
+    plt.tick_params(axis='both', which='major', labelsize=35)
+    plt.tick_params(axis='both', which='minor', labelsize=35)
 
-    plt.title(metric_config['title'],fontsize=45)
-    plt.ylabel('Value',fontsize=35)
+    plt.title(metric_config['title'],fontsize=55)
+    plt.ylabel('Value',fontsize=50)
     if legend_show is True:
-        plt.legend(fontsize=25)
+        plt.legend(fontsize=35)
     neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='png')
     plt.close()
 
@@ -338,13 +338,13 @@ def main(args):
     
     # Define a list of metric configurations for each plot
     metrics_configs = [
-        {'metrics': [metric for metric in metrics_to_collect if 'reward_err_' in metric], 'title': 'Reward Errors at Convergence', 'file_suffix': 'reward_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'train_group_loss' in metric], 'title': 'Group Train Loss at Convergence', 'file_suffix': 'train_group_loss_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'val_group_loss' in metric], 'title': 'Group Validation Loss at Convergence', 'file_suffix': 'val_group_loss_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'max_reward_err' in metric], 'title': 'Max Reward Error at Convergence', 'file_suffix': 'max_reward_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'max_train_grp_loss' in metric], 'title': 'Max Group Train Loss at Convergence', 'file_suffix': 'max_train_group_loss_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'max_val_grp_loss' in metric], 'title': 'Max Group Validation Loss at Convergence', 'file_suffix': 'max_val_group_loss_bars'},
-        {'metrics': [metric for metric in metrics_to_collect if 'max_kl_dist' in metric], 'title': 'Max KL Distance at Convergence', 'file_suffix': 'max_kl_distance_bars'}
+        {'metrics': [metric for metric in metrics_to_collect if 'reward_err_' in metric], 'title': 'Converged Reward Errors', 'file_suffix': 'reward_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'train_group_loss' in metric], 'title': 'Converged Group Train Loss', 'file_suffix': 'train_group_loss_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'val_group_loss' in metric], 'title': 'Converged Group Validation Loss', 'file_suffix': 'val_group_loss_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'max_reward_err' in metric], 'title': 'Converged Max Reward Error', 'file_suffix': 'max_reward_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'max_train_grp_loss' in metric], 'title': 'Converged Max Group Train Loss', 'file_suffix': 'max_train_group_loss_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'max_val_grp_loss' in metric], 'title': 'Converged Max Group Validation Loss', 'file_suffix': 'max_val_group_loss_bars'},
+        {'metrics': [metric for metric in metrics_to_collect if 'max_kl_dist' in metric], 'title': 'Converged Max KL Distance', 'file_suffix': 'max_kl_distance_bars'}
     ]
 
     # Loop through each configuration and plot
