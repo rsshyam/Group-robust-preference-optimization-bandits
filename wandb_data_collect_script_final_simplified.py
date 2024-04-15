@@ -1,4 +1,4 @@
-import wandb
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import sem
@@ -12,8 +12,6 @@ from visualisations_utils_wandb_api import (
 import os
 import neatplot
 #neatplot.set_style('notex')
-
-
 
 # Constants and configurations
 ENTITY = 'robust-rl-project'
@@ -46,6 +44,12 @@ ALGORITHMS = {
 }
 
 pref_data_num=300
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--setting", type=str, default="even_imbalanced_dpo")
+    # convention X_Y_Z: X={'even','uneven'}, Y={'balanced','imbalanced'}, Z={'dpo','ipo','all'}
+    return parser.parse_args()
 
 def get_setting_details(setting_key: str):
     if 'all' in setting_key:
@@ -147,6 +151,8 @@ def plot_metric_with_error_bands(iteration_index, metric_values, metric_sem, lab
         plt.plot(iteration_index, avg, label=label)
         plt.fill_between(iteration_index, avg - sem, avg + sem, alpha=0.2)
 
+    plt.grid(visible=True, linewidth=0.75)
+
     plt.tick_params(axis='both', which='major', labelsize=20)
     plt.tick_params(axis='both', which='minor', labelsize=20)
 
@@ -195,8 +201,8 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
     neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='pdf')
     plt.close()
 
-def main():
-    setting = 'even_imbalanced_all'  # convention X_Y_Z: X={'even','uneven'}, Y={'balanced','imbalanced'}, Z={'dpo','ipo','all'}
+def main(args):
+    setting = args.setting
     
     groups, weights_array, pref_data_num = get_setting_details(setting)
     filters_dicts, group_names = create_filter_dicts(groups, 'uneven' in setting)
@@ -236,9 +242,9 @@ def main():
                 iteration_index=iteration_index_1
 
 
-    base_folder = f'wandb-plots-final-synthetic/{len(filters_dicts)}_setting_{setting}'
+    base_folder = 'wandb-plots-final-synthetic/notex_plots/'
     os.makedirs(base_folder, exist_ok=True)
-    subfolder_name = f"{filters_dicts[0]['config.dpo_type']}{len(filters_dicts)}_v2"
+    subfolder_name = f"{len(filters_dicts)}_setting_{setting}" #f"{filters_dicts[0]['config.dpo_type']}{len(filters_dicts)}_v2"
     subfolder_path = os.path.join(base_folder, subfolder_name)
     os.makedirs(subfolder_path, exist_ok=True)
 
@@ -343,7 +349,7 @@ def main():
         plot_metric_bars(config, filters_dicts, group_names, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations, weights_array)
 
 if __name__ == "__main__":
-    main()
+    main(parse_args())
 
 
    

@@ -1,0 +1,11 @@
+python -m wandb_data_collect_script_final_simplified --setting even_imbalanced_dpo
+python -m wandb_data_collect_script_final_simplified --setting uneven_balanced_dpo
+python -m wandb_data_collect_script_final_simplified --setting uneven_imbalanced_dpo
+
+python -m wandb_data_collect_script_final_simplified --setting even_imbalanced_ipo
+python -m wandb_data_collect_script_final_simplified --setting uneven_balanced_ipo
+python -m wandb_data_collect_script_final_simplified --setting uneven_imbalanced_ipo
+
+python -m wandb_data_collect_script_final_simplified --setting even_imbalanced_all
+python -m wandb_data_collect_script_final_simplified --setting uneven_balanced_all
+python -m wandb_data_collect_script_final_simplified --setting uneven_imbalanced_all
