@@ -191,19 +191,16 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
     if 'Max' not in metric_config['title']:
         plt.xticks(positions, [f"Group {i+1} Ratio {weights_array[i]}" for i in range(len(metrics_end_avg))])
     else:
-        xtick_pos = [i * bar_width for i in range(len(filters_dicts))]
-        if len(xtick_pos) <= 4:
-            plt.xticks(xtick_pos, all_algos)
-        else:
-            plt.xticks(xtick_pos, all_algos, rotation = 45)
+        plt.xticks([i * bar_width for i in range(len(filters_dicts))], all_algos)
         legend_show = False
 
-    plt.tick_params(axis='x', which='major', labelsize=50)
+    plt.tick_params(axis='x', which='major', labelsize=25)
     plt.tick_params(axis='y', which='major', labelsize=50)
     plt.tick_params(axis='both', which='minor', labelsize=50)
 
     plt.title(metric_config['title'],fontsize=55)
     plt.ylabel('Value',fontsize=45)
+    plt.xlabel('Methods',fontsize=45)
     if legend_show is True:
         plt.legend(fontsize=35)
     neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='png')
