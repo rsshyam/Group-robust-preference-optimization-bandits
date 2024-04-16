@@ -151,7 +151,7 @@ def plot_metric_with_error_bands(iteration_index, metric_values, metric_sem, lab
             avg = np.append(avg, [avg[-1]] * (len(iteration_index) - len(avg)))
             sem = np.append(sem, [sem[-1]] * (len(iteration_index) - len(sem)))
         #color = colors[i] if colors else None
-        plt.plot(iteration_index, avg, label=label)
+        plt.plot(iteration_index, avg, label=label, linewidth=2)
         plt.fill_between(iteration_index, avg - sem, avg + sem, alpha=0.2)
 
     plt.grid(visible=True, linewidth=1)
@@ -191,12 +191,16 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
     if 'Max' not in metric_config['title']:
         plt.xticks(positions, [f"Group {i+1} Ratio {weights_array[i]}" for i in range(len(metrics_end_avg))])
     else:
-        plt.xticks([i * bar_width for i in range(len(filters_dicts))], all_algos)
+        xtick_pos = [i * bar_width for i in range(len(filters_dicts))]
+        if len(xtick_pos) <= 4:
+            plt.xticks(xtick_pos, all_algos)
+        else:
+            plt.xticks(xtick_pos, all_algos, rotation = 45)
         legend_show = False
 
-    plt.tick_params(axis='x', which='major', labelsize=25)
-    plt.tick_params(axis='y', which='major', labelsize=35)
-    plt.tick_params(axis='both', which='minor', labelsize=35)
+    plt.tick_params(axis='x', which='major', labelsize=50)
+    plt.tick_params(axis='y', which='major', labelsize=50)
+    plt.tick_params(axis='both', which='minor', labelsize=50)
 
     plt.title(metric_config['title'],fontsize=55)
     plt.ylabel('Value',fontsize=45)
@@ -246,7 +250,7 @@ def main(args):
                 iteration_index=iteration_index_1
 
 
-    base_folder = 'bandit-dpo-plots-test'
+    base_folder = 'bandit-dpo-plots-final-v3'
     os.makedirs(base_folder, exist_ok=True)
     subfolder_name = f"{len(filters_dicts)}_setting_{setting}" #f"{filters_dicts[0]['config.dpo_type']}{len(filters_dicts)}_v2"
     subfolder_path = os.path.join(base_folder, subfolder_name)
