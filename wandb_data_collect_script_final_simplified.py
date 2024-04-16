@@ -154,7 +154,7 @@ def plot_metric_with_error_bands(iteration_index, metric_values, metric_sem, lab
         plt.plot(iteration_index, avg, label=label, linewidth=2)
         plt.fill_between(iteration_index, avg - sem, avg + sem, alpha=0.2)
 
-    plt.grid(visible=True, linewidth=1)
+    plt.grid(visible=True, linewidth=2)
 
     plt.tick_params(axis='both', which='major', labelsize=35)
     plt.tick_params(axis='both', which='minor', labelsize=35)
@@ -195,12 +195,12 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
         legend_show = False
 
     plt.tick_params(axis='x', which='major', labelsize=25)
-    plt.tick_params(axis='y', which='major', labelsize=50)
-    plt.tick_params(axis='both', which='minor', labelsize=50)
+    plt.tick_params(axis='y', which='major', labelsize=35)
+    plt.tick_params(axis='both', which='minor', labelsize=35)
 
     plt.title(metric_config['title'],fontsize=55)
-    plt.ylabel('Value',fontsize=45)
-    plt.xlabel('Methods',fontsize=45)
+    plt.ylabel('Value',fontsize=50)
+    plt.xlabel('Methods',fontsize=50)
     if legend_show is True:
         plt.legend(fontsize=35)
     neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='png')
