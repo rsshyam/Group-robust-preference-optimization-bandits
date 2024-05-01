@@ -11,28 +11,29 @@ from visualisations_utils_wandb_api import (
 
 import os
 import neatplot
-neatplot.set_style()
+#neatplot.set_style()
 
 # Constants and configurations
 ENTITY = 'robust-rl-project'
 PROJECT = 'bandits_dpo'
+REWARD_FUNC = 'flipped' # in {'swapped', 'flipped', 'same'}
 SETTINGS = {
-    'even_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', 'even_imbalanced_ipo')],
-    'uneven_balanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_state-1', 'uneven_balanced_ipo')],
-    'uneven_imbalanced_ipo': [('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_state-1', 'uneven_imbalanced_ipo')],
+    'even_imbalanced_ipo': [(f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_state-1', 'even_imbalanced_ipo')],
+    'uneven_balanced_ipo': [(f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_state-1', 'uneven_balanced_ipo')],
+    'uneven_imbalanced_ipo': [(f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_state-1', 'uneven_imbalanced_ipo')],
     'even_imbalanced_dpo': [
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_dpo', 'DPO'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc_imp', 'DPO IS'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_even_imbal_osc', 'rGDPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc_dpo', 'DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc_imp', 'DPO IS'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc', 'rGDPO'),
     ],
     'uneven_balanced_dpo': [
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc_dpo', 'DPO'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_typeswappedeval_metricargmax_iason_uneven_bal_osc', 'rGDPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_bal_osc_dpo', 'DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_bal_osc', 'rGDPO'),
     ],
     'uneven_imbalanced_dpo': [
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_dpo', 'DPO'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc_imp', 'DPO IS'),
-        ('state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_typeswappedeval_metricargmax_iason_uneven_imbal_osc', 'rGDPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc_dpo', 'DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc_imp', 'DPO IS'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc', 'rGDPO'),
     ],
 }
 ALGORITHMS = {
