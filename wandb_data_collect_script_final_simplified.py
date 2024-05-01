@@ -11,7 +11,7 @@ from visualisations_utils_wandb_api import (
 
 import os
 import neatplot
-#neatplot.set_style()
+neatplot.set_style()
 
 # Constants and configurations
 ENTITY = 'robust-rl-project'
@@ -164,7 +164,7 @@ def plot_metric_with_error_bands(iteration_index, metric_values, metric_sem, lab
     plt.xlabel('Iterations',fontsize=50)
     plt.ylabel('Value',fontsize=50)
     plt.legend(fontsize=35, loc='center right')
-    neatplot.save_figure(f'{subfolder_path}/{file_name}', ext_list='png')
+    neatplot.save_figure(f'{subfolder_path}/{REWARD_FUNC}_{file_name}', ext_list='png')
     plt.close()
 
 def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations,weights_array):
@@ -204,7 +204,7 @@ def plot_metric_bars(metric_config, filters_dicts, group_names, subfolder_path, 
     plt.xlabel('Methods',fontsize=50)
     if legend_show is True:
         plt.legend(fontsize=35)
-    neatplot.save_figure(f'{subfolder_path}/{metric_config["file_suffix"]}', ext_list='png')
+    neatplot.save_figure(f'{subfolder_path}/{REWARD_FUNC}_{metric_config["file_suffix"]}', ext_list='png')
     plt.close()
 
 def main(args):
