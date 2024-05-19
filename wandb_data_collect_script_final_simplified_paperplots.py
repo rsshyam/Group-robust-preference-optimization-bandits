@@ -245,7 +245,9 @@ def subplot_plotter(subfolder_path, settings_data_dicts, titles_dict, metrics_ti
             metric_config = {'metrics': metrics, 'title': 'Converged Max Reward Error', 'file_suffix': 'max_reward_bars'}
             plot_metric_bars(fig, axes, ax_index, metric_config, filters_dicts, group_names, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations,weights_array)
         else:
-            plot_metric_with_error_bands(fig, axes, ax_index, iteration_index, values, sems, labels, f'{titles_dict[metric_name]}', subfolder_path, f"{metric_name}", setting=setting, extend=True)
+            method = 'IPO' if 'IPO' in labels[0] else 'DPO'
+            title = f'{method} {titles_dict[metric_name]}'
+            plot_metric_with_error_bands(fig, axes, ax_index, iteration_index, values, sems, labels, title, subfolder_path, f"{metric_name}", setting=setting, extend=True)
         #plt.show()
         ax_index += 1
 
