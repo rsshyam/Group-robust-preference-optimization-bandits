@@ -23,7 +23,7 @@ SETTINGS = {
     'uneven_imbalanced_ipo': [(f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_state-1', 'uneven_imbalanced_ipo')],
     'even_imbalanced_dpo': [
         (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc_dpo', 'DPO'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc_imp', 'DPO IS'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc_imp', 'IS-DPO'),
         (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc', 'GR-DPO'),
     ],
     'uneven_balanced_dpo': [
@@ -32,7 +32,7 @@ SETTINGS = {
     ],
     'uneven_imbalanced_dpo': [
         (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc_dpo', 'DPO'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc_imp', 'DPO IS'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc_imp', 'IS-DPO'),
         (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc', 'GR-DPO'),
     ],
 }
@@ -92,7 +92,7 @@ def create_filter_dicts(groups: list[tuple[str, str]], uneven: bool):
                 group_names.extend(['IPO', 'GR-IPO'])
             else:
                 filters.extend([dpo_filter, imp_samp_filter, theory_filter])
-                group_names.extend(['IPO', 'IPO IS', 'GR-IPO'])
+                group_names.extend(['IPO', 'IS-IPO', 'GR-IPO'])
             continue
 
         filter = {
@@ -178,6 +178,9 @@ def plot_metric_bars(fig, axes, ax_index, metric_config, filters_dicts, group_na
             algo = group_names[i]
         else:
             algo = determine_algorithm(filters_dict)
+
+        if algo in {'GR-DPO', 'GR-IPO'}:
+            algo = f'\\textbf{algo}'
 
         all_algos.append(algo)
         data_num = pref_data_num
