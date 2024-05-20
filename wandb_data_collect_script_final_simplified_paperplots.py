@@ -11,12 +11,12 @@ from visualisations_utils_wandb_api import (
 
 import os
 import neatplot
-#neatplot.set_style()
+neatplot.set_style()
 
 # Constants and configurations
 ENTITY = 'robust-rl-project'
 PROJECT = 'bandits_dpo'
-REWARD_FUNC = 'flipped' # in {'swapped', 'flipped', 'same'}
+REWARD_FUNC = 'same' # in {'swapped', 'flipped', 'same'}
 SETTINGS = {
     'even_imbalanced_ipo': [(f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_state-1', 'even_imbalanced_ipo')],
     'uneven_balanced_ipo': [(f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_state-1', 'uneven_balanced_ipo')],
@@ -117,10 +117,10 @@ def determine_algorithm(filters_dict):
             return 'GR-IPO'
         if filters_dict['config.importance_sampling_weights'] == {'$in': ['0.5,0.5']}:
             return 'IPO'
-        return 'IPO IS'
+        return 'IS-IPO'
     
     if filters_dict['config.importance_sampling'] == True:
-        return 'DPO IS'
+        return 'IS-DPO'
     if filters_dict['config.dpo_type'] == 'dpo':
         return 'DPO'
     return 'GR-DPO'
@@ -145,7 +145,7 @@ def prepare_metric_data(filters_dicts,group_names,metrics,all_avg_metrics_at_ite
     return metric_values, metric_sem, labels
 
 def plot_metric_with_error_bands(fig, axes, ax_index, iteration_index, metric_values, metric_sem, labels, plot_title, subfolder_path, file_name, setting, extend=False):
-    colors = {'IPO': 'blue', 'IPO IS': 'orange', 'GR-IPO': 'green', 'DPO': 'blue', 'DPO IS': 'orange', 'GR-DPO': 'green'}
+    colors = {'IPO': 'blue', 'IS-IPO': 'orange', 'GR-IPO': 'green', 'DPO': 'blue', 'IS-DPO': 'orange', 'GR-DPO': 'green'}
     
     #plt.figure(figsize=(12, 6))
     ##for i, (avg, sem) in enumerate(zip(metric_values, metric_sem)):
@@ -154,17 +154,21 @@ def plot_metric_with_error_bands(fig, axes, ax_index, iteration_index, metric_va
             avg = np.append(avg, [avg[-1]] * (len(iteration_index) - len(avg)))
             sem = np.append(sem, [sem[-1]] * (len(iteration_index) - len(sem)))
         #color = colors[i] if colors else None
-        axes[ax_index].plot(iteration_index, avg, label=label, color=colors[label], linewidth=3)
+        if label in {'GR-DPO', 'GR-IPO'}:
+            legend_label = r'$\textbf{' + label + '}$'
+        else:
+            legend_label = label
+        axes[ax_index].plot(iteration_index, avg, label=legend_label, color=colors[label], linewidth=3)
         axes[ax_index].fill_between(iteration_index, avg - sem, avg + sem, color=colors[label], alpha=0.2)
 
     axes[ax_index].grid(visible=True, linewidth=2)
 
-    axes[ax_index].tick_params(axis='both', which='major', labelsize=40)
-    axes[ax_index].tick_params(axis='both', which='minor', labelsize=40)
+    axes[ax_index].tick_params(axis='both', which='major', labelsize=45)
+    axes[ax_index].tick_params(axis='both', which='minor', labelsize=45)
 
     axes[ax_index].set_title(plot_title,fontdict={'fontsize':55})
-    axes[ax_index].set_xlabel('Iterations',fontdict={'fontsize':50})
-    axes[ax_index].set_ylabel('Value',fontdict={'fontsize':50})
+    axes[ax_index].set_xlabel('Iterations',fontdict={'fontsize':55})
+    axes[ax_index].set_ylabel('Value',fontdict={'fontsize':55})
     axes[ax_index].legend(fontsize=40, loc='center right')
     #neatplot.save_figure(f'{subfolder_path}/{REWARD_FUNC}_{setting}_{file_name}', ext_list='pdf')
     #plt.close()
@@ -180,7 +184,7 @@ def plot_metric_bars(fig, axes, ax_index, metric_config, filters_dicts, group_na
             algo = determine_algorithm(filters_dict)
 
         if algo in {'GR-DPO', 'GR-IPO'}:
-            algo = f'\\textbf{algo}'
+            algo = r'$\textbf{' + algo + '}$' 
 
         all_algos.append(algo)
         data_num = pref_data_num
@@ -210,12 +214,12 @@ def plot_metric_bars(fig, axes, ax_index, metric_config, filters_dicts, group_na
         legend_show = False
 
     plt.tick_params(axis='x', which='major', labelsize=25)
-    plt.tick_params(axis='y', which='major', labelsize=40)
-    plt.tick_params(axis='both', which='minor', labelsize=40)
+    plt.tick_params(axis='y', which='major', labelsize=45)
+    plt.tick_params(axis='both', which='minor', labelsize=45)
 
     axes[ax_index].set_title(metric_config['title'],fontdict={'fontsize':55})
-    axes[ax_index].set_xlabel('Methods',fontdict={'fontsize':50})
-    axes[ax_index].set_ylabel('Value',fontdict={'fontsize':50})
+    axes[ax_index].set_xlabel('Methods',fontdict={'fontsize':55})
+    axes[ax_index].set_ylabel('Value',fontdict={'fontsize':55})
     if legend_show is True:
         axes[ax_index].legend(fontsize=40)
     #neatplot.save_figure(f'{subfolder_path}/{REWARD_FUNC}_{setting}_{metric_config["file_suffix"]}', ext_list='pdf')
@@ -330,7 +334,7 @@ def main(args):
             'all_sem': all_sem_metrics_at_iterations,
         })
 
-    base_folder = 'bandit-dpo-plots-final-vtest'
+    base_folder = 'bandit-dpo-plots-final-vf'
     os.makedirs(base_folder, exist_ok=True)
     subfolder_name = f"{len(filters_dicts)}_setting_{setting}" #f"{filters_dicts[0]['config.dpo_type']}{len(filters_dicts)}_v2"
     subfolder_path = os.path.join(base_folder, subfolder_name)
