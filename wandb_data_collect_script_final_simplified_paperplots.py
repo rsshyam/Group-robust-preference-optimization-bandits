@@ -145,7 +145,7 @@ def prepare_metric_data(filters_dicts,group_names,metrics,all_avg_metrics_at_ite
     return metric_values, metric_sem, labels
 
 def plot_metric_with_error_bands(fig, axes, ax_index, iteration_index, metric_values, metric_sem, labels, plot_title, subfolder_path, file_name, setting, extend=False):
-    colors = {'IPO': 'blue', 'IS-IPO': 'orange', 'GR-IPO': 'green', 'DPO': 'blue', 'IS-DPO': 'orange', 'GR-DPO': 'green'}
+    colors = {'IPO': 'tab:orange', 'IS-IPO': 'tab:green', 'GR-IPO': 'tab:blue', 'DPO': 'tab:purple', 'IS-DPO': 'magenta', 'GR-DPO': 'tab:red'}
     
     #plt.figure(figsize=(12, 6))
     ##for i, (avg, sem) in enumerate(zip(metric_values, metric_sem)):
@@ -176,6 +176,8 @@ def plot_metric_with_error_bands(fig, axes, ax_index, iteration_index, metric_va
 def plot_metric_bars(fig, axes, ax_index, metric_config, filters_dicts, group_names, subfolder_path, all_avg_metrics_at_iterations, all_sem_metrics_at_iterations,weights_array):
     #plt.figure(figsize=(12, 6))
     legend_show = True
+    colors = {'IPO': 'tab:orange', 'IS-IPO': 'tab:green', 'GR-IPO': 'tab:blue', 'DPO': 'tab:purple', 'IS-DPO': 'magenta', 'GR-DPO': 'tab:red'} 
+
     all_algos = []
     for i, filters_dict in enumerate(filters_dicts):
         if group_names is not None:
@@ -184,9 +186,12 @@ def plot_metric_bars(fig, axes, ax_index, metric_config, filters_dicts, group_na
             algo = determine_algorithm(filters_dict)
 
         if algo in {'GR-DPO', 'GR-IPO'}:
-            algo = r'$\textbf{' + algo + '}$' 
+            #print('hey ', algo)
+            algobold = r'$\textbf{' + algo + '}$' 
+        else:
+            algobold = algo
 
-        all_algos.append(algo)
+        all_algos.append(algobold)
         data_num = pref_data_num
 
         #print('DEBUG')
@@ -202,7 +207,7 @@ def plot_metric_bars(fig, axes, ax_index, metric_config, filters_dicts, group_na
         offset = i * bar_width
         positions = np.arange(len(metrics_end_avg)) + offset
         
-        axes[ax_index].bar(positions, height=metrics_end_avg, yerr=metrics_end_sem, width=bar_width*0.95, capsize=5, alpha=0.7, label=f'{algo}')
+        axes[ax_index].bar(positions, height=metrics_end_avg, yerr=metrics_end_sem, width=bar_width*0.95, capsize=5, alpha=1, label=f'{algobold}', color=colors[algo])
         #plt.gca().invert_yaxis()
     
     if 'Max' not in metric_config['title']:
