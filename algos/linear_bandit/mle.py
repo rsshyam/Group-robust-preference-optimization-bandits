@@ -215,7 +215,7 @@ class MLERewardLearning:
     
     def evaluate_group(
         self, dataset: List[Transition], true_reward_param: np.ndarray
-    ) -> (float, float, float):
+    ) -> List[float, float, float]:
         # calculate the loss
         loss = 0.0
         acc = 0.0

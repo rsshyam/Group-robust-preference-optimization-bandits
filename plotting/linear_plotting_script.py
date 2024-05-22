@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jan  8 16:00:55 2024
+Created on [Anonymised]
 
-@author: William
+@author: [Anonymised]
 """
 
 import os
@@ -19,54 +19,7 @@ exp_id = 1
 check_weights=True
 
 log_name = "pg"
-#rdpo-140-
-#log_folder_path = f"/home/uceesr4/policy_optimization/log-weighted-dpo_sep/rdpo/2024_01_15_04_22_16/pg"
-#dpo-140
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_15_04_28_41/pg'
-
-#dpo-200
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_15_13_21_27_200/pg'
-
-#non-adaptive
-#rdpo-0.1
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/rdpo/2024_01_15_21_53_52_200/pg'
-#dpo-0.1
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_15_21_48_49_200/pg'
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/rdpo/2024_01_16_02_10_47_200/pg'#step-size 0.5 non-adaptive
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/rdpo/2024_01_16_02_10_15_200/pg'#step-size 1 non-adaptive
-
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_16_01_20_21_200/pg'#step-size 0.5 non-adaptive
-#folder_path_dpo='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_16_01_36_15_200/pg'#step-size 1 non-adaptive
-
-
-#dpo-10000-0.05
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_16_12_55_52_10000/pg'
-#dpo-10000-0.5
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_16_12_56_05_10000/pg'
-#dpo-10000-0.1
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_16_12_56_20_10000/pg'
-
-#rdpo-10000-0.05
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/rdpo/2024_01_16_12_45_36_1000/pg'
-#rdpo-10000-0.5
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/rdpo/2024_01_16_12_43_46_1000/pg'
-#rdpo-10000-0.1
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/rdpo/2024_01_16_12_44_18_1000/pg'
-#10-5
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_16_17_03_53_20000/pg'
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_16_17_00_46_20000/pg'
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_16_17_03_09_20000/pg'
-
-#log_folder_path='log-weighted-dpo_sep/dpo/2024_01_17_01_30_19_20000/pg'
-
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_17_01_34_02_20000/pg'
-
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_17_01_33_42_20000/pg'
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_16_17_00_46_20000/pg'
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_16_12_56_20_10000/pg'
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_17_01_28_17_20000/pg'
-#log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_17_01_31_49_20000/pg'
-log_folder_path='/home/uceesr4/policy_optimization/log-weighted-dpo_sep/dpo/2024_01_18_18_27_52_50000/pg'
+log_folder_path='/[Anonymised]'
 match = re.search(r'sep/(dpo|rdpo)/2024', log_folder_path)
 if match.group(1)=='dpo':
     check_weights=False

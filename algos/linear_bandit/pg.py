@@ -77,7 +77,7 @@ class PolicyGradient:
 
         return policy
 
-    def update_once(self, dataset: List[np.ndarray]) -> (float, float):
+    def update_once(self, dataset: List[np.ndarray]) -> List[float, float]:
         grad = np.zeros_like(self.policy_param, np.float32)
         for state in dataset:
             rews = [

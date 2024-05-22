@@ -506,7 +506,6 @@ class GroupDirectPolicyOptimization:
               test_dataset: list[GroupTransition],  env: GroupLinearBandit, optimal_reward: List[float]) -> float:
         print('ipo grad type: ', self.ipo_grad_type)
         if self.ipo_grad_type=='Regression':
-            print('Hellooooo Regression IPO')
             """
             grad_norm=self.evaluate_ipo_grad(dataset)
             live_grad=grad_norm
