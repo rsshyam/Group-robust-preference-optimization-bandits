@@ -22,18 +22,18 @@ SETTINGS = {
     'uneven_balanced_ipo': [(f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_state-1', 'uneven_balanced_ipo')],
     'uneven_imbalanced_ipo': [(f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_state-1', 'uneven_imbalanced_ipo')],
     'even_imbalanced_dpo': [
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc_dpo', 'DPO'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc_imp', 'IS-DPO'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc', 'GR-DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_even_imbal_osc_dpo', 'DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_even_imbal_osc_imp', 'IS-DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_even_imbal_osc', 'GR-DPO'),
     ],
     'uneven_balanced_dpo': [
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_bal_osc_dpo', 'DPO'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_bal_osc', 'GR-DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_uneven_bal_osc_dpo', 'DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_uneven_bal_osc', 'GR-DPO'),
     ],
     'uneven_imbalanced_dpo': [
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc_dpo', 'DPO'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc_imp', 'IS-DPO'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc', 'GR-DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_uneven_imbal_osc_dpo', 'DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_uneven_imbal_osc_imp', 'IS-DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_uneven_imbal_osc', 'GR-DPO'),
     ],
 }
 ALGORITHMS = {

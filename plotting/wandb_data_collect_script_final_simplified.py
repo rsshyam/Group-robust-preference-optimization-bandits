@@ -22,18 +22,18 @@ SETTINGS = {
     'uneven_balanced_ipo': [(f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_state-1', 'uneven_balanced_ipo')],
     'uneven_imbalanced_ipo': [(f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_state-1', 'uneven_imbalanced_ipo')],
     'even_imbalanced_dpo': [
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc_dpo', 'DPO'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc_imp', 'DPO IS'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_even_imbal_osc', 'rGDPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_even_imbal_osc_dpo', 'DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_even_imbal_osc_imp', 'IS-DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_even_imbal_osc', 'GR-DPO'),
     ],
     'uneven_balanced_dpo': [
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_bal_osc_dpo', 'DPO'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_bal_osc', 'rGDPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_uneven_bal_osc_dpo', 'DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.5,0.5]feature_type{REWARD_FUNC}eval_metricargmax_uneven_bal_osc', 'GR-DPO'),
     ],
     'uneven_imbalanced_dpo': [
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc_dpo', 'DPO'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc_imp', 'DPO IS'),
-        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_iason_uneven_imbal_osc', 'rGDPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_uneven_imbal_osc_dpo', 'DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_uneven_imbal_osc_imp', 'IS-DPO'),
+        (f'state_dim2action_num8group_num2pref_data_num300weights[0.2,0.8]feature_type{REWARD_FUNC}eval_metricargmax_uneven_imbal_osc', 'GR-DPO'),
     ],
 }
 ALGORITHMS = {
@@ -89,10 +89,10 @@ def create_filter_dicts(groups: list[tuple[str, str]], uneven: bool):
             #avg_filter = {**base_filter_ipo, 'group': groups[0][0], 'config.importance_sampling': False, 'config.rdpo_exp_step_size': 0.01, 'config.use_theory': False, 'config.dpo_num_iters': 100}
             if 'uneven_balanced' in group[1]:
                 filters.extend([dpo_filter, theory_filter])
-                group_names.extend(['IPO', 'rGIPO'])
+                group_names.extend(['IPO', 'GR-IPO'])
             else:
                 filters.extend([dpo_filter, imp_samp_filter, theory_filter])
-                group_names.extend(['IPO', 'IPO IS', 'rGIPO'])
+                group_names.extend(['IPO', 'IS-IPO', 'GR-IPO'])
             continue
 
         filter = {
@@ -114,16 +114,16 @@ def create_filter_dicts(groups: list[tuple[str, str]], uneven: bool):
 def determine_algorithm(filters_dict):
     if filters_dict['config.ipo_grad_type'] == 'linear': # IPO
         if not filters_dict['config.importance_sampling']:
-            return 'rGIPO'
+            return 'GR-IPO'
         if filters_dict['config.importance_sampling_weights'] == {'$in': ['0.5,0.5']}:
             return 'IPO'
-        return 'IPO IS'
+        return 'IS-IPO'
     
     if filters_dict['config.importance_sampling'] == True:
-        return 'DPO IS'
+        return 'IS-DPO'
     if filters_dict['config.dpo_type'] == 'dpo':
         return 'DPO'
-    return 'rGDPO'
+    return 'GR-DPO'
 
 def prepare_metric_data(filters_dicts,group_names,metrics,all_avg_metrics_at_iterations,all_sem_metrics_at_iterations,metric_titles):
     metric_values = []
