@@ -1,1 +1,0 @@
- sh scripts/run_glp_mult.sh --dpo_type 'rdpo' --feature_type 'flipped' --step_size 0.1 --reg_coef 0.1 --eval_metric argmax --ipo_grad_type 'linear' --param_limit 5 --exp_step_size 0.0001 --dpo_num_iters 17500 --use_closed_form True --weighted_batches False --lamba 1 --deterministic False

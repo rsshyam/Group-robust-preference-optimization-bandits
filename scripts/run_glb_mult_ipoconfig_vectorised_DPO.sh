@@ -80,7 +80,7 @@ LOG_DIR="log-weighted-dpo_sep_vectorised/rdpo/$(date +'%Y_%m_%d_%H_%M_%S')_$DPO_
 mkdir -p "$LOG_DIR"
 
 # Generate weights from [0.1, 0.9] to [0.9, 0.1]
-for weight in $(seq 0.2 0.1 0.2) # 0.1 0.1 0.9
+for weight in $(seq 0.2 0.1 0.2)
 do
     WEIGHTS=[$weight,$(awk "BEGIN {print 1 - $weight}")]
     
