@@ -114,7 +114,7 @@ def parse_args():
     parser.add_argument("--pg_step_size", type=float, default=0.1)
 
     parser.add_argument("--wandb_use", action="store_true")
-    parser.add_argument("--wandb_key", type=str, default="eb687170e674596d211e8f521a3524aac14a07db")
+    parser.add_argument("--wandb_key", type=str, default="[key]")
     parser.add_argument("--wandb_entity", type=str, default="robust-rl-project")
     parser.add_argument("--wandb_project", type=str, default="bandits_dpo")
     parser.add_argument("--wandb_group", type=str, default="group1")
@@ -193,7 +193,7 @@ def main(args):
         else:
             exp_name=args.wandb_name +"_"+args.dpo_type + "_" + str(args.rdpo_exp_step_size) +"_" + str(args.rdpo_batch_size) + '_' + str(args.rdpo_weighted_batches) + "_" + args.rdpo_adj  + "_" + str(args.seed)
         wandb.init(
-            group=f'state_dim{args.state_dim}'+f'action_num{args.action_num}'+f'group_num{args.group_num}'+f'pref_data_num{args.pref_data_num}'+f'weights{args.weights}'+f'feature_type{args.feature_type}'+f'eval_metric{args.eval_metric}'+f'_iason_{args.wandb_group}',
+            group=f'state_dim{args.state_dim}'+f'action_num{args.action_num}'+f'group_num{args.group_num}'+f'pref_data_num{args.pref_data_num}'+f'weights{args.weights}'+f'feature_type{args.feature_type}'+f'eval_metric{args.eval_metric}'+f'_{args.wandb_group}',
             entity=args.wandb_entity,
             project=args.wandb_project,
             config=args.__dict__,

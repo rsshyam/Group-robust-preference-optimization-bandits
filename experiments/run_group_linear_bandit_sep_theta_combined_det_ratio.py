@@ -105,10 +105,10 @@ def parse_args():
     parser.add_argument("--pg_step_size", type=float, default=0.1)
 
     parser.add_argument("--wandb_use", action="store_true")
-    parser.add_argument("--wandb_key", type=str, default="eb687170e674596d211e8f521a3524aac14a07db") ## Iason Key "cb1fbe601d5d40f7a5cbb7097ae65d4a368ab3bf"; Shyam key "eb687170e674596d211e8f521a3524aac14a07db"
-    parser.add_argument("--wandb_entity", type=str, default="robust-rl-project")#"group_rdpo_non_vec")
+    parser.add_argument("--wandb_key", type=str, default="[key]")
+    parser.add_argument("--wandb_entity", type=str, default="robust-rl-project")
     parser.add_argument("--wandb_project", type=str, default="bandits_dpo")
-    parser.add_argument("--wandb_group", type=str, default="group1")  ## unused
+    parser.add_argument("--wandb_group", type=str, default="group1")
     parser.add_argument("--wandb_name", type=str, default="linear_bandits")
 
     return parser.parse_args()
