@@ -20,12 +20,24 @@ conda activate bandit
 
 ## Training and Evaluation
 
-The main experiment file is ```experiments/run_group_linear_bandit_sep_theta_combined_uneven_grp_vectorised.py```.
+The main experiment file is ```experiments/run_group_linear_bandit_sep_theta_combined_uneven_grp_vectorised.py```. This file is called from ```scripts/run_glp_mult_uneven.sh```. Due to the large number of command-line arguments, we also provide scripts in ```scripts/scripts\ to\ reproduce```, which only alter significant arguments and call ```scripts/run_glp_mult_uneven.sh```.
 
+The important arguments are:
+- ```dpo_type``` : 'dpo' for non-robust baseline, and 'rdpo' for robust GRPO.
+- ```ipo_grad_type``` : 'justdpo' for DPO loss (this is GR-DPO if ```dpo_type = rdpo``` or DPO/IS-DPO if ```dpo_type = rdpo```); 'linear' for IPO loss (GR-IPO if ```dpo_type = rdpo``` or IPO/IS-IPO if ```dpo_type = rdpo```)
+- ```importance_sampling``` & ```importance_sampling_weights``` : If ```importance_sampling = true``` and ```importance_sampling_weights``` are given as a string-array, IS-DPO/IS-IPO. Elif ```importance_sampling = false```, DPO/IPO. Here, one must concurrently set ```dpo_type = dpo```.
+- ```feature_type``` : 'swapped', 'flipped' or 'same' feature vector φ(x,y,g).
+- ```weight``` : Percentage of training samples given to the first group (2 groups case); ```weight=0.2``` is imbalanced-data (20-80 imbalance), and ```weight=0.5``` is balanced-data (50-50).
+
+Call ```scripts/scripts\ to\ reproduce``` scripts to run (1) Even-Imbalanced, (2) Uneven-Balanced, or (3) Uneven-Imbalanced configurations. The call is as follows
 
 ```
-bash scripts/run_linear_bandit.sh
+bash scripts/scripts\ to\ reproduce/even_group_imbalanced_data.sh
+bash scripts/scripts\ to\ reproduce/uneven_group_balanced_data.sh
+bash scripts/scripts\ to\ reproduce/uneven_group_imbalanced_data.sh
 ```
+
+All synthetic experiments run for 20 seeds (2021-2040), in CPU compute (Intel Xeon E5-4620 v4 @ 2.10GHz & Xeon E5-2660 v3 @ 2.60GHz).
 
 ## Results
 
