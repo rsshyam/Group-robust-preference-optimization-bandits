@@ -51,6 +51,10 @@ When running experiments (_Training and Evaluation_), the WandB Group name shoul
 
 To run Script (2) for all configurations (even/uneven groups, balanced/imbalanced data), ```plotting/plotting.sh``` may be used. For each configuration, append ```_dpo``` in ```--setting``` for GR-DPO plots, ```_ipo``` for GR-IPO plots, and ```_all``` for GR-DPO & GR-IPO together.
 
+## Citation
+Please cite our paper if you find the repo helpful in your work:
+
+
 ```bibtex
 @article{ramesh2024grpo,
     title={Group Robust Preference Optimization in Reward-free RLHF},
