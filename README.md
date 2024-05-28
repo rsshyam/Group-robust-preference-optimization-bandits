@@ -53,8 +53,9 @@ To run Script (2) for all configurations (even/uneven groups, balanced/imbalance
 
 ```bibtex
 @article{ramesh2024grpo,
-  title={Group Robust Preference Optimization in Reward-free RLHF},
-  author={Shyam Sundhar Ramesh, Iason Chaimalas, Viraj Mehta, Haitham Bou Ammar, Pier Giuseppe Sessa, Yifan Hu, Ilija Bogunovic},
-  year={2024}
+    title={Group Robust Preference Optimization in Reward-free RLHF},
+    author={Shyam Sundhar Ramesh, Iason Chaimalas, Viraj Mehta, Haitham Bou Ammar, 
+            Pier Giuseppe Sessa, Yifan Hu, Ilija Bogunovic},
+    year={2024}
 }
 ```
