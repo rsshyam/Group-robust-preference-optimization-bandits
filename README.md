@@ -2,6 +2,7 @@
 
 This repository implementats our experiments with synthetic preference data in the paper _Group Robust Preference Optimization in Reward-free RLHF_.
 
+We build upon the following codebase https://github.com/liziniu/policy_optimization that implements DPO training for bandit environments.
 
 The main scripts relevant for group robust DPO and IPO are `scripts/run_glp_mult.sh` which calls upon `experiments/run_group_linear_bandit_sep_theta_combined_det_ratio`.
 
