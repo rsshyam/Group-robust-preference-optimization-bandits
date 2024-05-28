@@ -50,3 +50,11 @@ Script (1) generates plots as individual ```plt.figure``` objects. Script (2) ge
 When running experiments (_Training and Evaluation_), the WandB Group name should match the group names of the runs that are downloaded by the plot scripts (i.e. the WandB groups defined in the ```SETTINGS``` var -- Line 20, scripts (1) and (2).).
 
 To run Script (2) for all configurations (even/uneven groups, balanced/imbalanced data), ```plotting/plotting.sh``` may be used. For each configuration, append ```_dpo``` in ```--setting``` for GR-DPO plots, ```_ipo``` for GR-IPO plots, and ```_all``` for GR-DPO & GR-IPO together.
+
+```bibtex
+@article{ramesh2024grpo,
+  title={Group Robust Preference Optimization in Reward-free RLHF},
+  author={Shyam Sundhar Ramesh, Iason Chaimalas, Viraj Mehta, Haitham Bou Ammar, Pier Giuseppe Sessa, Yifan Hu, Ilija Bogunovic},
+  year={2024}
+}
+```
