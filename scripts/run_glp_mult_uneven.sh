@@ -1,4 +1,4 @@
-#!/bin/bash
+run_glp_mult_uneven.sh*#!/bin/bash
 
 set -e
 set -x
@@ -39,9 +39,10 @@ USE_UNEVEN_GRP_VAL=False
 USE_THEORY=False
 WEIGHT=0.2
 WANDB_GROUP='uneven_converge_test'
+CHI=1
 
 # Parse command-line options
-TEMP=$(getopt -o t:s:b:e:f: --long dpo_type:,step_size:,reg_coef:,batch_size:,exp_step_size:,feature_type:,weighted_batches:,rdpo_adj:,eval_metric:,exp_adaptive:,importance_sampling:,importance_sampling_weights:,ipo_grad_type:,param_limit:,dpo_num_iters:,use_closed_form:,val_deterministic:,lamba:,deterministic_ratio_list:,deterministic_list:,use_weight_val:,val_deterministic_ratio_list:,use_uneven_grp:,use_uneven_grp_val:,use_theory:,weight:,wandb_group: -n 'your_script.sh' -- "$@")
+TEMP=$(getopt -o t:s:b:e:f: --long dpo_type:,step_size:,reg_coef:,batch_size:,exp_step_size:,feature_type:,weighted_batches:,rdpo_adj:,eval_metric:,exp_adaptive:,importance_sampling:,importance_sampling_weights:,ipo_grad_type:,param_limit:,dpo_num_iters:,use_closed_form:,val_deterministic:,lamba:,deterministic_ratio_list:,deterministic_list:,use_weight_val:,val_deterministic_ratio_list:,use_uneven_grp:,use_uneven_grp_val:,use_theory:,weight:,wandb_group:,chi: -n 'your_script.sh' -- "$@")
 if [ $? -ne 0 ]; then
     echo "Terminating..." >&2
     exit 1
@@ -79,6 +80,7 @@ while true; do
     --weight) WEIGHT="$2"; shift 2;;
     --wandb_group) WANDB_GROUP="$2"; shift 2;;
     --l2_reg_rdpo) L2_REG_RDPO="$2"; shift 2;;
+    --chi) CHI="$2"; shift 2;;
     --) shift; break ;;
     *) echo "Internal error!" >&2; exit 1 ;;
   esac
@@ -91,7 +93,7 @@ mkdir -p "$LOG_DIR"
 WEIGHTS=[$WEIGHT,$(awk "BEGIN {print 1 - $WEIGHT}")]
 echo WEIGHTS ${WEIGHTS}
 
-for seed in 2021 2022 2023 2024 2025 2026 2027 2028 2029 2030 2031 2032 2033 2034 2035 2036 2037 2038 2039 2040 
+for seed in 2021 2022 2023 2024 2025 2026 2027 2028 2029 2030 2031 2032 2033 2034 2035 2036 2037 2038 2039 2040
 do
     python -m experiments.run_group_linear_bandit_sep_theta_combined_uneven_grp_vectorised \
     --mle_adaptive \
@@ -132,7 +134,8 @@ do
     --use_weight_val ${USE_WEIGHT_VAL} \
     --use_uneven_grp ${USE_UNEVEN_GRP} \
     --use_uneven_grp_val ${USE_UNEVEN_GRP_VAL} \
-    --use_theory ${USE_THEORY} 
+    --use_theory ${USE_THEORY} \
+    --chi ${CHI} 
 done
 
 # 2031 2032 2033 2034 2035 2036 2037 2038 2039 2040
