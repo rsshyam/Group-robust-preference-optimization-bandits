@@ -37,7 +37,6 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         param_limit: int = 1,                           ## elements of vector θ range in [0, param_limit]
         use_closed_form: bool=False,                    ## closed-form regression solution for IPO
         lamba: float =0,                                ## L2 regularisation for closed-form regression of IPO objective in Linear Bandits case
-        chi: float = 1.0,                               ## tradeoff between worst-case and avg accuracy
         l2_reg_rdpo: float = 0,                         ## L2 regularisation for vectorised RDPO
         reg_by_group_weights: float = 0,                ## regularisation on vectorised RDPO by subtracting step*group_weights^2
         train_agent: bool=True,                         ## if True, use self.train(); else, use self.random_train() func
@@ -90,7 +89,6 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         
         self.use_closed_form=use_closed_form
         self.lamba=lamba
-        self.chi=chi
         self.l2_reg_rdpo = l2_reg_rdpo
         self.reg_by_group_weights = reg_by_group_weights
         self.train_agent=train_agent
@@ -385,14 +383,13 @@ class GroupRobustDirectPolicyOptimizationVectorised:
             else:
                 exp_step_size = self.exp_step_size
 
-            self.group_weights = self.group_weights*np.exp(exp_step_size*group_loss*self.chi)#update weights based on group loss calculated
+            self.group_weights = self.group_weights*np.exp(exp_step_size*group_loss)#update weights based on group loss calculated
             self.group_weights = self.group_weights/np.sum(self.group_weights)#normalize the weights
 
         weighted_group_grad = np.zeros_like(group_grad)
         for group_id in range(self.group_num):
             group_indices = group_id_idx_all[group_id]
-            worst_avg_tradeoff = (1-self.chi)/self.group_num + self.chi*self.group_weights[group_id]
-            group_grad_weighted_sum = np.sum(-neg_cur_data_grad[group_indices], axis=0) * worst_avg_tradeoff # * self.group_weights[group_id]
+            group_grad_weighted_sum = np.sum(-neg_cur_data_grad[group_indices], axis=0) * self.group_weights[group_id]
             if self.importance_sampling==False: # divide grads by group counts in RDPO
                 weighted_group_grad[group_id] = group_grad_weighted_sum / cur_group_counts[group_id] # len(sampled_group_transitions)  ############### had self.group_weights[group_id] scaling before
             else: # Importance Sampling has weights assigned to inv-freq and then group-grads divided by batch size
@@ -629,9 +626,8 @@ class GroupRobustDirectPolicyOptimizationVectorised:
 
         if self.importance_sampling==False:
             #print(self.group_weights,group_loss,np.exp(self.exp_step_size*group_loss))
-            print("CHI = ", self.chi, " type ", type(self.chi))
-            self.group_weights=self.group_weights*np.exp(self.exp_step_size*group_loss*self.chi)#update weights based on group loss calculated
-            print(self.group_weights)
+            self.group_weights=self.group_weights*np.exp(self.exp_step_size*group_loss)#update weights based on group loss calculated
+            #print(self.group_weights)
             self.group_weights=self.group_weights/np.sum(self.group_weights)#normalize the weights
         self.hist_grad_squared_norm += np.sum(np.square(grad))
         self.hist_group_loss+=group_loss
@@ -641,10 +637,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
         else:
             step_size = self.step_size
         #print(grad)
-        self.cur_group_counts_closedform = cur_group_counts
         live_grad=self.WeightedRegression(sampled_group_transitions,self.lamba)
-        self.theta_update = 'ClosedForm'
-        self.total_loss = 'ClosedForm'
         #self.param=np.array([1.0,2.0])
         return np.sqrt(np.sum(np.square(grad))),live_grad
     
@@ -667,8 +660,7 @@ class GroupRobustDirectPolicyOptimizationVectorised:
                 self.feature_func(state, non_pref_act,group_id),
             )
             Y.append(feat_pref_act-feat_non_pref_act)
-            w.append( (1-self.chi)/self.group_num + self.chi*self.group_weights[group_id] )
-
+            w.append(self.group_weights[group_id])
         Y=np.array(Y)
         w=np.array(w)
         #print(w)
