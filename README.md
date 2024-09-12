@@ -25,7 +25,7 @@ The main experiment file is ```experiments/run_group_linear_bandit_sep_theta_com
 
 The important arguments are:
 - ```dpo_type``` : 'dpo' for non-robust baseline, and 'rdpo' for robust GRPO.
-- ```ipo_grad_type``` : 'justdpo' for DPO loss (this is GR-DPO if ```dpo_type = rdpo``` or DPO/IS-DPO if ```dpo_type = rdpo```); 'linear' for IPO loss (GR-IPO if ```dpo_type = rdpo``` or IPO/IS-IPO if ```dpo_type = rdpo```)
+- ```ipo_grad_type``` : 'justdpo' for DPO loss (this is GR-DPO if ```dpo_type = rdpo``` or DPO/IS-DPO if ```dpo_type = dpo```); 'linear' for IPO loss (GR-IPO if ```dpo_type = rdpo``` or IPO/IS-IPO if ```dpo_type = dpo```)
 - ```importance_sampling``` & ```importance_sampling_weights``` : If ```importance_sampling = true``` and ```importance_sampling_weights``` are given as a string-array, IS-DPO/IS-IPO. Elif ```importance_sampling = false```, DPO/IPO. Here, one must concurrently set ```dpo_type = dpo```.
 - ```feature_type``` : 'swapped', 'flipped' or 'same' feature vector φ(x,y,g).
 - ```weight``` : Percentage of training samples given to the first group (2 groups case); ```weight=0.2``` is imbalanced-data (20-80 imbalance), and ```weight=0.5``` is balanced-data (50-50).
